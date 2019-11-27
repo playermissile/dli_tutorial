@@ -208,6 +208,10 @@ mixed in a single screen.
 A Crash Course on Display List Interrupts
 ---------------------------------------------
 
+
+A Simple Example
+~~~~~~~~~~~~~~~~~~~~~
+
 A common feature of display lists is to change colors. This first display list interrupt will change the color of the background:
 
 .. code-block::
@@ -220,12 +224,20 @@ A common feature of display lists is to change colors. This first display list i
 
 but note that running this example causes a flickering line in the background:
 
+.. figure:: first_dli.gif
+   :align: center
 
 
 
-WSYNC
-~~~~~~~~~~
+A Simple Example with WSYNC
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+The Atari provides a way to sync with a scan line, and that's triggered by
+saving (any value) to the WSYNC memory location at $d40a. This causes the 6502
+to halt until the electron beam nears the end of the scan line, at which point
+the 6502 will resume executing instructions. Because the electron beam is
+usually off-screen at this point, it is safe to change color registers for at
+least the next several instructions without artifacts appearing on screen.
 
 .. code-block::
 
@@ -235,6 +247,9 @@ WSYNC
            sta COLBK
            pla
            rti
+
+.. figure:: first_dli_with_rsync.png
+   :align: center
 
 
 
