@@ -54,7 +54,7 @@ a scan line.
 This simplified description is the mental model we will use to describe the
 video drawing process.
 
-How TVs really work (a better approximation)
+How TVs really (approximately) work
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Real TVs are interlaced with 525 scan lines for NTSC and 625 for PAL. Every
@@ -78,11 +78,10 @@ How TVs produce the colors that they display is very complicated and so far
 outside the scope of this tutorial that it might as well be magic. Suffice it
 to say that color happens. On the Atari, fully-specifiable color only happens
 every *color clock* and there are 228 color clocks per scan line. This
-corresponds to the maximum horizontal resolution of 160 pixels (standard width
-playfield) in any bitmap mode other than Antic Mode F (BASIC Graphics 8). That
-is the highest horizontal resolution that support a pixel at a specifiable
-color. Mode F has 320 addressable pixels, corresponding to half a color clock,
-and only artifacting color is available.
+corresponds to the 160 pixel horizontal resolution of Antic Modes B through E
+in the standard width playfield. Antic Mode F (BASIC Graphics 8) has 320
+addressable pixels, corresponding to half a color clock, and only artifacting
+color is available.
 
 .. seealso::
 
@@ -103,14 +102,23 @@ in a 6502 reference. In fact, the amount of time ANTIC "steals" will depend on
 many factors: the graphics mode, player/missiles being used, playfield size,
 and more.
 
-Because of the NTSC (or PAL) signal, and the fact that each frame draws 262
-scan lines with 228 color clocks per scan line, the operating frequency of the
-6502 was chosen such that it takes exactly 114 machine cycles per scan line,
-producing 29868 machine cycles per frame. This means that in one machine cycle,
-two color clocks are drawn on the screen. A typical machine instruction might
-take 5 machine cycles, so 10 color clocks could pass in the time to process a
-single instruction! This means we don't have much time per scan line, so it
-will mean that DLIs will have to be quick.
+Because of the NTSC signal, and the fact that each frame draws 262 scan lines
+with 228 color clocks per scan line, the operating frequency of the 6502 was
+chosen such that it takes exactly 114 machine cycles per scan line, producing
+29868 machine cycles per frame (and with a 60Hz refresh rate, results in a
+processor speed of 1.792MHz).
+
+.. note::
+
+   For PAL systems, the 312 scan lines have the same 228 color clocks and 114
+   machine cycles per line. This results in 35568 cycles per frame, but since
+   the frequency is 50Hz, the processor runs at 1.778MHz
+
+Since there are 228 color clocks but only 114 machine cycles per scan line,
+this means that in one machine cycle, two color clocks are drawn on the screen.
+A typical machine instruction might take 5 machine cycles, so 10 color clocks
+could pass in the time to process a single instruction! This means we don't
+have much time per scan line, so it will mean that DLIs will have to be quick.
 
 It also means the 6502 is too slow to draw the screen itself, and this is where
 ANTIC's special "machine language" comes in. You program the ANTIC coprocessor
