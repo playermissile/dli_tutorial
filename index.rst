@@ -226,6 +226,7 @@ but note that running this example causes a flickering line in the background:
 
 .. figure:: first_dli.gif
    :align: center
+   :width: 50%
 
 
 
@@ -248,8 +249,9 @@ least the next several instructions without artifacts appearing on screen.
            pla
            rti
 
-.. figure:: first_dli_with_rsync.png
+.. figure:: first_dli_with_wsync.png
    :align: center
+   :width: 50%
 
 
 
