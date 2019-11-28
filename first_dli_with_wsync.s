@@ -26,8 +26,8 @@ forever
 
 dli     pha
         lda #$7a
-        sta COLBK
         sta WSYNC
+        sta COLBK
         pla
         rti
 
