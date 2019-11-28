@@ -54,7 +54,7 @@ a scan line.
 This simplified description is the mental model we will use to describe the
 video drawing process.
 
-How TVs really (approximately) work
+How TVs really (well, kinda approximately) work
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Real TVs are interlaced with 525 scan lines for NTSC and 625 for PAL. Every
@@ -70,18 +70,21 @@ scan line but this time filling in the scan lines it missed.
 Notice that this would mean that e.g. one NTSC frame should draw 262 scan lines
 and the other 263, but apparently TVs can compensate for the missing scan line
 every alternate frame, so the Atari always outputs 262 scan lines. Practically
-speaking, you do not need to care that the screen is interlaced. If the screen
-were unchanging, the Atari would send the same 262 scan lines regardless of
-which field it is drawing.
+speaking, you do not need to care that the screen is interlaced. If the Atari
+is displaying an unchanging screen, it produces the same information in the 262
+scan lines it generates regardless of which field it is drawing.
 
 How TVs produce the colors that they display is very complicated and so far
 outside the scope of this tutorial that it might as well be magic. Suffice it
-to say that color happens. On the Atari, fully-specifiable color only happens
-every *color clock* and there are 228 color clocks per scan line. This
-corresponds to the 160 pixel horizontal resolution of Antic Modes B through E
-in the standard width playfield. Antic Mode F (BASIC Graphics 8) has 320
-addressable pixels, corresponding to half a color clock, and only artifacting
-color is available.
+to say that color happens.
+
+On the Atari, a unit called the color clock is the smallest portion of a scan
+line that can be displayed with an arbitrary color. There are 228 color clocks
+per scan line, of which about 160 were typically visible on a TV display in the
+1970s when the Atari was developed. This corresponds to the 160 pixel
+horizontal resolution of Antic Modes B through E in the standard width
+playfield. Antic Mode F (BASIC Graphics 8) has 320 addressable pixels,
+corresponding to half a color clock, and only artifacting color is available.
 
 .. seealso::
 
@@ -94,7 +97,7 @@ A Crash Course on Display Lists
 
 ANTIC is the special coprocessor that handles screen drawing for the Atari
 computers. It is tightly coupled with the 6502 processor, and in fact can be
-thought of as having control of the 6502 because the ANTIC can halt the 6502
+thought of as being the driver of the 6502 because the ANTIC can halt the 6502
 when needed. Since only one chip can read memory at any time, ANTIC needs to
 halt the 6502 when it needs access to memory, so this Direct Memory Access
 (DMA) can cause 6502 instructions to appear to take more cycles than documented
@@ -243,7 +246,7 @@ location $14 changes, then set NMIEN:
 .. code-block::
 
            lda RTCLOK+2
-   ?loop   cmp RTCLOK+2
+   ?loop   cmp RTCLOK+2  ; will be equal until incremented in VB
            beq ?loop
 
            ; activate display list interrupt
@@ -255,7 +258,9 @@ location $14 changes, then set NMIEN:
 A Simple Example
 ~~~~~~~~~~~~~~~~~~~~~
 
-A common feature of display lists is to change colors. This first display list interrupt will change the color of the background:
+A common use of display lists is to change colors part of the way down the
+screen. This first display list interrupt will change the color of the
+background:
 
 .. code-block::
 
@@ -277,11 +282,12 @@ A Simple Example with WSYNC
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The Atari provides a way to sync with a scan line, and that's triggered by
-saving (any value) to the WSYNC memory location at $d40a. This causes the 6502
-to halt until the electron beam nears the end of the scan line, at which point
-the 6502 will resume executing instructions. Because the electron beam is
-usually off-screen at this point, it is safe to change color registers for at
-least the next several instructions without artifacts appearing on screen.
+saving some value (any value, the bit pattern is not important) to the WSYNC
+memory location at $d40a. This causes the 6502 to stop processing instructions
+until the electron beam nears the end of the scan line, at which point the 6502
+will resume executing instructions. Because the electron beam is usually off-
+screen at this point, it is safe to change color registers for at least the
+next several instructions without artifacts appearing on screen.
 
 .. code-block::
 
