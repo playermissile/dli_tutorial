@@ -3,8 +3,8 @@
 .. highlight:: ca65
 
 
-Advanced Tutorial on Atari 8-bit Display List Interrupts
-==========================================================
+Advanced Crash Course on Atari 8-bit Display List Interrupts
+=================================================================
 
 This is a tutorial on advanced Display List Interrupts (DLIs) for the Atari
 8-bit series of computers. In a nutshell, DLIs provide a way to notify your
@@ -220,8 +220,28 @@ here and the screen drawing will commence using the new display list.
 A Sample Display List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Here is a simple display list that contains different text and graphics modes
-mixed in a single screen.
+Here is a display list:
+
+.. code-block::
+
+   dlist   .byte $70,$70,$70  ; 24 blank lines
+           .byte $46,$00,$40  ; Mode 6 + LMS, setting screen memory to $4000
+           .byte 6            ; Mode 6
+           .byte $70          ; 8 blank lines
+           .byte 7,7,7,7,7    ; 5 lines of Mode 7
+           .byte $70          ; 8 blank lines
+           .byte 2            ; single line of Mode 2
+           .byte $70,$70,$70  ; 24 blank lines
+           .byte 2,4          ; Mode 2 followed by mode 4
+           .byte $70          ; 8 blank lines
+           .byte 2,5          ; Mode 2 followed by mode 5
+           .byte $41,<dlist,>dlist ; JVB, restart same display list on next frame
+
+that contains different text modes mixed in a single screen.
+
+.. figure:: sample_display_list.png
+   :align: center
+   :width: 70%
 
 
 Cycle Stealing by ANTIC
@@ -337,7 +357,7 @@ but note that running this example causes a flickering line in the background:
 
 .. figure:: first_dli.gif
    :align: center
-   :width: 50%
+   :width: 70%
 
 
 
@@ -363,7 +383,7 @@ least the next several instructions without artifacts appearing on screen.
 
 .. figure:: first_dli_with_wsync.png
    :align: center
-   :width: 50%
+   :width: 70%
 
 .. note::
 
