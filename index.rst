@@ -211,6 +211,43 @@ Here is a simple display list that contains different text and graphics modes
 mixed in a single screen.
 
 
+Cycle Stealing by ANTIC
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ANTIC coprocessor needs to access memory to perform its functions, and
+since the 6502 and ANTIC can't both access at once, ANTIC will pause execution
+of the 6502 when it needs to read memory. It happens at specific points within
+the 114 cycles of each scan line, but where it happens (and how many times the
+6502 gets paused during the scan line) depends on the graphics mode.
+
+For overhead, ANTIC will typically steal 3 cycles to read the display list, 5
+cycles if player/missile graphics are enabled, and 9 cycles for memory
+refreshing.
+
+Graphics modes (modes 8 - F) have cycles stolen corresponding to the number of
+bytes-per-line used in that mode, in addition to the up-to 17 cycles stolen for
+ANTIC overhead. For example, mode E will use an additional 40 cycles, so in the
+context of writing a game, the typical number of cycles used could be 57 out of
+the 114 cycles per scan line. This means you typically have only half of the
+cycles available for your 6502 code!
+
+Text modes are the worst-case scenario, because ANTIC must fetch the font
+glyphs in addition to its other work. The first scan line of a font mode is
+almost entirely used by ANTIC and only a small number of cycles is available to
+the 6502. For normal 40-byte wide playfields, the first line of ANTIC modes 2
+through 5 will yield at most about 30 cycles and subsequent lines about 60
+cycles per scan line. Adding player/missile graphics and scrolling can reduce
+the available cycles to less than 10 on the first line and about 30 on
+subsequent lines!
+
+.. seealso::
+
+   Chapter 4 in the
+   `Altirra Hardware Reference Manual <http://www.virtualdub.org/downloads/Altirra%20Hardware%20Reference%20Manual.pdf>`_
+   contains tables depicting exactly which cycles are stolen by ANTIC for
+   each mode.
+
+
 A Crash Course on Display List Interrupts
 ---------------------------------------------
 
@@ -315,98 +352,81 @@ least the next several instructions without artifacts appearing on screen.
    :align: center
    :width: 50%
 
+.. note::
+
+   ``WSYNC`` (wait for horizontal blank) usually restarts the 6502 on or
+   about cycle 105 out of 114, but there are cases that can delay that. See the
+   Altirra Hardware Reference Manual for more information.
+
+
+DLIs in a Nutshell
+-----------------------
+
+DLIs provide you with a way to notify your program at a particular vertical
+location on the screen. They pause (or interrupt) the normal flow of program
+code, save the state of the machine, call your DLI subroutine, and restore the
+state of the computer before returning control to the code that was
+interrupted.
+
+.. warning::
+
+   Here are the requirements for successful use of DLIs:
+
+   * your DLI routine must save any registers it clobbers
+   * restore any registers you save before exiting
+   * exit with an ``RTI``
+   * use ``WSYNC`` if necessary
+   * be aware of cycles stolen by ANTIC: you could have only 60 cycles per scan line in higher resolution graphics modes, and as few as 10 in text modes
+   * store the address of your routine in ``VDSLST`` before enabling DLIs with ``NMIEN``
+
+Note that nowhere in that list was the requirement that the DLI be short. It
+doesn't have to be, and in fact DLIs that span multiple scan lines are similar
+to kernels used in Atari 2600 programming. The difference is that ANTIC steals
+cycles depending on a bunch of factors, so the total cycle counting approach
+(or `Racing the Beam <https://mitpress.mit.edu/books/racing-beam>`_) is usually
+not possible.
+
+However, most DLIs that you will run across in the wild *are* short, because
+they typically don't do a lot of calculations. Most of the setup work will
+generally be done outside of the DLI and the DLI itself just handles the result
+of that work.
+
+
+Advanced DLI #1: Moving the DLI Up and Down the Screen
+------------------------------------------------------------
+
+The DLI subroutine itself doesn't directly know what scan line caused the
+interrupt because all DLIs are routed through the same vector at ``VDLSTL``.
+The only trigger is in the display list itself, the DLI bit on the display list
+command.
+
+The display list can be modified in place to move the DLI to different lines
+without changing the DLI code itself.
 
 
 
-In addition, there are two special commandsThe low
+Advanced DLI #2: Multiple DLIs
+------------------------------------------------------------
 
-Changing the value of the DL shadow register SDLSTL ($230) will, at the next vertical blank, change the display list to the address specified.
+One of the problems with having a single DLI vector is: what do you do when you
+want to have more than one DLI?
 
+Some solutions that you will see in the wild:
 
+ * use ``VCOUNT`` to check where you are on screen
+ * change ``VDLSTL`` to point to the next DLI in the chain
+ * increment an index value and use that to determine which DLI has been called
 
-In addition, some familiarity with how the ANTIC coprocessor draws the screen
-will be helpful, but this is not absolutely required as this tutorial will try to cover
-the necessities.
-
-
-My goal is to build `MAME <http://www.mame.net/>`_ cabinets powered by a
-`Raspberry Pi <http://www.raspberrypi.org/>`_ that in addition to playing
-arcade games will play old retro console and home computer games.  I'm
-targeting 8-bit machines so the Raspberry Pi has plenty of CPU power to
-emulate things like the Atari 2600, Atari 800 and Apple II.
-
-I'm (mostly) done with the :ref:`upright cabinet <upright>`!
+Here's another solution that can save some valuable cycles: put your DLIs in the same page of memory and only change the low byte.
 
 
-Cabinets
---------
 
-.. toctree::
-   :maxdepth: 3
-   
-   upright
-   cabaret
+Advanced DLI #3: Multiplexing Players & Collision Detection
+------------------------------------------------------------------
 
-
-Design, Woodworking & Build
----------------------------
-
-The cabinet design I liked best is Tempest.  I'm completely terrible at the
-game, but the angular cabinet design stood out to me as such a classic.
-
-.. figure:: tempest-cabaret.jpg
-   :target: http://www.arcade-museum.com/game_detail.php?game_id=10065
-   :align: right
-
-.. figure:: tempest-cabinet.jpg
-   :target: http://www.arcade-museum.com/game_detail.php?game_id=10065
-   :align: left
-
-The biggest design requirement is modular control panels, similar to
-`Doc's Modular MAME <http://www.beersmith.com/mame/index.htm>`_ in
-that I want to be able to play a lot of different types games using
-different control layouts without resorting to the `frankenpanel
-<http://www.brentradio.com/images/Other/MameContolPanel.jpg>`_ look.
-
-My plan is build two MAME cabinets: a full size cabinet with a horizontal
-monitor and a cabaret with a vertical monitor.  For a cabaret, the Atari
-cabarets all seem to be the same, so while it doesn't really matter which
-game's cab I use, I grabbed the Tempest one for consistency.  I found Google
-Sketchup designs for both and modified them to fit my ideas.
-
-The modular panels can be shared between both cabs, so the control panel
-dimensions have the same depth.  The difference is the width: the full-size
-cab has a 24" wide panel, while the cabaret has an 18" wide panel.  The full-
-size cab is wide enough to be used for simultaneous two-player games, while
-the 18" wide panel of the cabaret is limits its use to one player at a time.
-
-.. toctree::
-   :maxdepth: 3
-   
-   control-panel
-   wiring
-   upright-woodworking
-   cabaret-woodworking
-   sideart
+Simple multiplexing players of is easy, you just set a new value for one of the
+player or missile X position registers. But what if you want to have *a lot* of
+reuse of players and be able to use the collision registers to see what has
+happened in each region?
 
 
-Computer
---------
-
-.. toctree::
-   :maxdepth: 3
-   
-   rpi
-   summary-037b5
-   summary-106
-
-
-Links
------
-
-* `Doc's Modular MAME <http://www.beersmith.com/mame/index.htm>`_
-* `Rick Reynolds' modular panel cabinet <http://www.rickandviv.net/index.php/the-frinkiac-7/>`_
-* `Brian Sturk's metal modular panels <https://dl.dropboxusercontent.com/u/15568023/site/mame.html>`_
-* http://spystyle.arcadecontrols.com/Massive-Mame_How-to_mirror/
-* http://www.hanselman.com/blog/BuildingYourOwnArcadeCabinetForGeeksPart1TheCabinet.aspx
-* `Nice writeup of a RPi-powered mini coctail cab <http://circuitbeard.co.uk/blog/rombus-ct-a-raspberry-pi-powered-mini-cocktail-arcade>`_
