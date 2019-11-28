@@ -208,6 +208,49 @@ mixed in a single screen.
 A Crash Course on Display List Interrupts
 ---------------------------------------------
 
+Display list interrupts are not enabled by default. To use a DLI, the address
+vector at VDLSLT/H ($200 and $201) must be set to your routine, and then they
+must be enabled through a write to NMIEN at $d40e.
+
+.. warning::
+
+   You must set the address of your DLI before enabling them, otherwise the DLI
+   could be called and use whatever address is stored at $200.
+
+This can look like this, where the constants NMIEN_VBI and NMIEN_DLI are
+defined as $40 and $80, respectively, in `hardware.s` in the sample repository.
+
+.. code-block::
+
+           ; load display list interrupt address
+           lda #<dli
+           sta VDSLST
+           lda #>dli
+           sta VDSLST+1
+
+           ; activate display list interrupt
+           lda #NMIEN_VBI | NMIEN_DLI
+           sta NMIEN
+
+If your program has multiple DLIs, it may be necessary to set your DLIs in a
+vertical blank interrupt to guarantee that ANTIC is not in the middle of the
+screen when the DLI becomes active. In Yaron Nir's tutorial a different
+technique is used, one not requiring a vertical blank interrupt but instead
+using the RTCLOK 3-byte zero page variable. The last of the bytes, location
+$14, is incremented every vertical blank, so that technique is to wait until
+location $14 changes, then set NMIEN:
+
+.. code-block::
+
+           lda RTCLOK+2
+   ?loop   cmp RTCLOK+2
+           beq ?loop
+
+           ; activate display list interrupt
+           lda #NMIEN_VBI | NMIEN_DLI
+           sta NMIEN
+
+
 
 A Simple Example
 ~~~~~~~~~~~~~~~~~~~~~
