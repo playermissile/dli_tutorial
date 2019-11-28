@@ -289,9 +289,9 @@ If your program has multiple DLIs, it may be necessary to set your DLIs in a
 vertical blank interrupt to guarantee that ANTIC is not in the middle of the
 screen when the DLI becomes active. In Yaron Nir's tutorial a different
 technique is used, one not requiring a vertical blank interrupt but instead
-using the RTCLOK 3-byte zero page variable. The last of the bytes, location
-$14, is incremented every vertical blank, so that technique is to wait until
-location $14 changes, then set NMIEN:
+using the ``RTCLOK`` 3-byte zero page variable. The last of the bytes, location
+``$14``, is incremented every vertical blank, so that technique is to wait
+until location ``$14`` changes, then set ``NMIEN``:
 
 .. code-block::
 
