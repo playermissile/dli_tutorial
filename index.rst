@@ -14,19 +14,21 @@ mid-screen.
 DLIs are an advanced programming technique in the sense that they require
 knowledge of 6502 assembly language, so this tutorial is going to assume that
 you are comfortable with that. All the examples here are assembled using the
-MAC/65-compatible assembler
-`ATasm<https://atari.miribilist.com/atasm/index.html>`_ (and more specifically
-to this tutorial, the version built-in to Omnivore).
-
-Here are some references for learning about display list interrupts:
-
- * `De Re Atari, Chapter 5 <https://www.atariarchives.org/dere/chapt05.php>`_
- * `Yaron Nir's tutorial using cc65 <https://atariage.com/forums/topic/291991-cc65-writing-a-dli-tutorial/>`_
+MAC/65-compatible assembler `ATasm
+<https://atari.miribilist.com/atasm/index.html>`_ (and more specifically to
+this tutorial, the version built-in to Omnivore).
 
 Before diving into DLIs, it is helpful to understand that they are very
 accurately named: Display List Interrupts literally interrupt the display list
 -- they cause an event that is processed by your program while the ANTIC is drawing the screen. So it is necessary to understand what display lists are
 before understanding what it means to interrupt one.
+
+.. seealso::
+
+   Here are some resources for learning more about display list interrupts:
+
+   * `De Re Atari, Chapter 5 <https://www.atariarchives.org/dere/chapt05.php>`_
+   * `Yaron Nir's tutorial using cc65 <https://atariage.com/forums/topic/291991-cc65-writing-a-dli-tutorial/>`_
 
 
 A Crash Course on Displays
@@ -58,11 +60,11 @@ How TVs really (well, kinda approximately) work
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Real TVs are interlaced with 525 scan lines for NTSC and 625 for PAL. Every
-refresh interval, the electron beam draws one *field*, starting at the top left
-and drawing every other scan line. When it reaches the bottom, the vertical
-retrace starts, but this time it positions the electron beam at the first
-missing scan line. Then it draws the next field, again skipping every other
-scan line but this time filling in the scan lines it missed.
+refresh interval, the electron beam draws one **field**, starting at the top
+left and drawing every other scan line. When it reaches the bottom, the
+vertical retrace starts, but this time it positions the electron beam at the
+first missing scan line. Then it draws the next field, again skipping every
+other scan line but this time filling in the scan lines it missed.
 
 .. figure:: electron-beam-interlaced.png
    :align: center
@@ -83,7 +85,7 @@ line that can be displayed with an arbitrary color. There are 228 color clocks
 per scan line, of which about 160 were typically visible on a TV display in the
 1970s when the Atari was developed. This corresponds to the 160 pixel
 horizontal resolution of Antic Modes B through E in the standard width
-playfield. Antic Mode F (BASIC Graphics 8) has 320 addressable pixels,
+playfield. Antic Mode F (Graphics 8 in BASIC) has 320 addressable pixels,
 corresponding to half a color clock, and only artifacting color is available.
 
 .. seealso::
@@ -145,10 +147,10 @@ affect that command:
 
 The 4 flags are:
 
-* DLI ($80): enable a display list interrupt when processing this instruction
-* LMS ($40): trigger a Load Memory Scan, changing where ANTIC looks for screen data, and requires an additional 2 byte address immediately following this command byte.
-* VSCROLL ($20): enable vertical scrolling for this mode line
-* HSCROLL ($10): enable horizontal scrolling for this mode line
+ * DLI (``$80``): enable a display list interrupt when processing this instruction
+ * LMS (``$40``): trigger a Load Memory Scan, changing where ANTIC looks for screen data, and requires an additional 2 byte address immediately following this command byte.
+ * VSCROLL (``$20``): enable vertical scrolling for this mode line
+ * HSCROLL (``$10``): enable horizontal scrolling for this mode line
 
 The 14 available graphics modes are encoded into bits 3-0 using values as shown
 in this table:
@@ -183,10 +185,10 @@ Jump and wait for Vertical Blank instruction. the DLI bit may also be set on a
 jump instruction.
 
 The typical method to change the currently active display list is to change the
-address stored at SDLSTL (in low byte/high byte format in addresses $230 &
-$231). At the next vertical blank, the hardware display list at DLISTL/H
-($D402, $D403) will be updated with the values stored here and the screen
-drawing will commence using the new display list.
+address stored at ``SDLSTL`` (in low byte/high byte format in addresses
+``$230`` and ``$231``). At the next vertical blank, the hardware display list
+at ``DLISTL`` (``$d402`` and ``$d403``) will be updated with the values stored
+here and the screen drawing will commence using the new display list.
 
 The playfield portion of the display list is 192 lines in standard graphics
 modes, out of the 262 possible lines in NTSC. More lines are possible, but the
@@ -195,11 +197,12 @@ lines are used, the more clock cycles are needed before hitting the vertical
 blank, so making a display list with too many lines can cause timing problems
 if the vertical blank also takes a long time.
 
+.. seealso::
 
-More resources about display lists are available:
+   More resources about display lists are available:
 
-* https://www.atariarchives.org/mapping/memorymap.php#560,561
-* https://www.atariarchives.org/mapping/appendix8.php
+   * https://www.atariarchives.org/mapping/memorymap.php#560,561
+   * https://www.atariarchives.org/mapping/appendix8.php
 
 A Sample Display List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -221,7 +224,7 @@ any registers that it uses, restoring them when it is done using them, and must
 exit using the ``RTI`` instruction.
 
 Display list interrupts are not enabled by default. To use a DLI, the address
-vector at ``VDLSLT/H`` (``$200`` and ``$201``) must be set to your routine, and
+vector at ``VDLSLT`` (``$200`` and ``$201``) must be set to your routine, and
 then they must be enabled through a write to ``NMIEN`` at ``$d40e``.
 
 .. warning::
@@ -292,12 +295,12 @@ A Simple Example with WSYNC
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The Atari provides a way to sync with a scan line, and that's triggered by
-saving some value (any value, the bit pattern is not important) to the WSYNC
-memory location at $d40a. This causes the 6502 to stop processing instructions
-until the electron beam nears the end of the scan line, at which point the 6502
-will resume executing instructions. Because the electron beam is usually off-
-screen at this point, it is safe to change color registers for at least the
-next several instructions without artifacts appearing on screen.
+saving some value (any value, the bit pattern is not important) to the
+``WSYNC`` memory location at ``$d40a``. This causes the 6502 to stop processing
+instructions until the electron beam nears the end of the scan line, at which
+point the 6502 will resume executing instructions. Because the electron beam is
+usually off-screen at this point, it is safe to change color registers for at
+least the next several instructions without artifacts appearing on screen.
 
 .. code-block::
 
