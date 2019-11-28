@@ -211,17 +211,27 @@ mixed in a single screen.
 A Crash Course on Display List Interrupts
 ---------------------------------------------
 
+DLIs are non-maskable interrupts (NMIs), meaning they cannot be ignored. When
+an NMI occurs, the 6502 jumps to the address stored at ``$fffa``, which points
+to an OS routine that checks the type of interrupt (either a DLI or a VBI) and
+vectors through the appropriate user vector. The NMI handler takes care of
+saving the processor status register and sets the interrupt flag, but *does
+not* save any processor registers. The user routine is responsible for saving
+any registers that it uses, restoring them when it is done using them, and must
+exit using the ``RTI`` instruction.
+
 Display list interrupts are not enabled by default. To use a DLI, the address
-vector at VDLSLT/H ($200 and $201) must be set to your routine, and then they
-must be enabled through a write to NMIEN at $d40e.
+vector at ``VDLSLT/H`` (``$200`` and ``$201``) must be set to your routine, and
+then they must be enabled through a write to ``NMIEN`` at ``$d40e``.
 
 .. warning::
 
    You must set the address of your DLI before enabling them, otherwise the DLI
-   could be called and use whatever address is stored at $200.
+   could be called and use whatever address is stored at ``$200``.
 
-This can look like this, where the constants NMIEN_VBI and NMIEN_DLI are
-defined as $40 and $80, respectively, in `hardware.s` in the sample repository.
+This can look like this, where the constants ``NMIEN_VBI`` and ``NMIEN_DLI``
+are defined as ``$40`` and ``$80``, respectively, in `hardware.s` in the sample
+repository.
 
 .. code-block::
 
