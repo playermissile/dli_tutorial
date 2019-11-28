@@ -134,6 +134,17 @@ The display list is the special sequence of bytes that ANTIC interprets as a
 list of commands. Each command causes ANTIC to draw a certain number of scan
 lines in a particular way. A DLI can be set on any ANTIC command.
 
+ANTIC supports display lists that produce at most 240 scan lines (even on PAL
+systems where many more scan lines are available), and the vertical blank
+interval always starts after 248 scan lines. When drawing scan lines, ANTIC
+skips 8 scan lines at to top of the display, so the output from the display
+list starts at the 9th scan line. A standard display list starts with 24 blank
+lines and 192 scan lines of display data, meaning that the TV will see 32 blank
+lines (the 8 automatically skipped plus the 24 in a standard display list)
+followed by 192 scan lines of display, then 24 blank lines, and finally the
+vertical blank that consumes the remaining 14 scan lines on NTSC (or 64 on
+PAL).
+
 An ANTIC display list command consists of 1 byte with an optional 2 byte
 address. There are 3 types of commands: blank lines, graphics modes, and jump
 commands. Commands are encoded into the byte using a bitmask where low 4 bits
@@ -179,23 +190,25 @@ but this is a topic outside the scope of this tutorial.
 Blank lines are encoded as a mode value of zero, the bits 6, 5, and 4 taking
 the meaning of the number of blank lines rather than LMS, VSCROLL, and HSCROLL. Note that the DLI bit is still available on blank lines, however, as bit 7 is not co-opted by the blank line instruction.
 
-Jumps are encoded using a mode value of one, and require an additional 2 byte
-address for the next display list pointer. If bit 6 is also set, it becomes the
-Jump and wait for Vertical Blank instruction. the DLI bit may also be set on a
-jump instruction.
+Jumps provide the capability to split a display list into multiple parts in
+different memory locations. They are encoded using a mode value of one, and
+require an additional 2 byte address where ANTIC will look for the next display
+list command. If bit 6 is also set, it becomes the Jump and wait for Vertical
+Blank (JVB) instruction, which is how ANTIC knows that the display list is
+finished. The DLI bit may also be set on a jump instruction, but if set on the
+JVB instruction it triggers a DLI on every scan line from there until the
+vertical blank starts on the 249th scan line.
+
+.. note::
+
+   Apart from the ``$41`` JVB command, splitting display lists using the
+   ``$01`` command is not common. It produces a blank line in the display list.
 
 The typical method to change the currently active display list is to change the
 address stored at ``SDLSTL`` (in low byte/high byte format in addresses
 ``$230`` and ``$231``). At the next vertical blank, the hardware display list
 at ``DLISTL`` (``$d402`` and ``$d403``) will be updated with the values stored
 here and the screen drawing will commence using the new display list.
-
-The playfield portion of the display list is 192 lines in standard graphics
-modes, out of the 262 possible lines in NTSC. More lines are possible, but the
-maximum usable amount would depend on the TV screen being used. The more scan
-lines are used, the more clock cycles are needed before hitting the vertical
-blank, so making a display list with too many lines can cause timing problems
-if the vertical blank also takes a long time.
 
 .. seealso::
 
