@@ -392,6 +392,142 @@ least the next several instructions without artifacts appearing on screen.
    Altirra Hardware Reference Manual for more information.
 
 
+DLIs Don't Have to be Short
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+DLIs can really be thought of as a way for your program to be told when a
+certain display list command is reached. Apart from the setup and teardown of
+the DLI subroutine itself and some timing limitations discussed in the next
+section, arbitrary code can be executed in a DLI.
+
+.. note::
+
+   Author's note: thinking that DLIs had to be short was a great source of
+   confusion to me when trying to figure out how rainbow effects were
+   generated. My thinking was that DLIs could only affect a single line, and
+   for instance I could not figure out how to get a color change in the middle
+   of a text mode. I don't know why I thought that something bad would happen
+   if a DLI went long, but I did.
+
+The following example shows how to have a single DLI affect multiple scan
+lines, even crossing into subsequent ANTIC mode 4 lines in the display list:
+
+.. code-block::
+
+   dli     pha             ; save A & X registers to stack
+           txa
+           pha
+           ldx #16         ; make 16 color changes
+           lda #$a         ; initial color
+           sta WSYNC       ; first WSYNC gets us to start of scan line we want
+   ?loop   sta COLBK       ; change background color
+           clc
+           adc #$11        ; change color value, luminance remains the same
+           dex             ; update iteration count
+           sta WSYNC       ; make it the color change last ...
+           sta WSYNC       ;   for two scan lines
+           bne ?loop       ; sta doesn't affect flags so this still checks result of dex
+           lda #$00        ; reset background color to black
+           sta COLBK
+           pla             ; restore X & A registers from stack
+           tax
+           pla
+           rti
+
+It changes background colors 16 times, where each color change lasts 2 scan
+lines. So 32 scan lines means that it covers 4 display list entries of ANTIC
+mode 4.
+
+
+.. figure:: rainbow_wsync.png
+   :align: center
+   :width: 70%
+
+
+
+Timing Limitations of DLIs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The timing limitations are:
+
+ * a DLI cannot extend into the vertical blank or Bad Things Happen(tm)
+ * DLIs, if they run long enough, can themselves be interrupted by other DLIs
+
+Here's a similar DLI to the above, except it changes the luminance value
+instead of the color value to make the effect easier to see. It starts with a
+bright pink and gets dimmer down to a dark red after 32 scan lines:
+
+.. code-block::
+
+   dli     pha             ; save A & X registers to stack
+           txa
+           pha
+           ldx #16         ; make 16 color changes
+           lda #$5f        ; initial bright pink color
+           sta WSYNC       ; first WSYNC gets us to start of scan line we want
+   ?loop   sta COLBK       ; change background color
+           sec
+           sbc #1          ; make dimmer by decrementing luminance value
+           dex             ; update iteration count
+           sta WSYNC       ; make it the color change last ...
+           sta WSYNC       ;   for two scan lines
+           bne ?loop       ; sta doesn't affect processor flags so we are still    checking result of dex
+           lda #$00        ; reset background color to black
+           sta COLBK
+           pla             ; restore X & A registers from stack
+           tax
+           pla
+           rti
+
+But this time, the display list has *two* lines that have the DLI bit set:
+
+.. code-block::
+
+   dlist   .byte $70,$70,$70
+           .byte $44,$00,$40
+           .byte $c4  ; first DLI triggered on last scan line
+           .byte $44
+           .byte $c4  ; second DLI triggered on last scan line
+           .byte $44,$44,$44,$44,$44,$44,$44,$44
+           .byte $44,$44,$44,$44,$44,$44,$44,$44
+           .byte $44,$44,$44,$44
+           .byte $41,<dlist,>dlist
+
+Because the ``VDLSTL`` pointer is not changed, the same code will be called
+each time an interrupt occurs.
+
+The first DLI hits and starts with a bright background color on the first scan
+line of the third line of text. But because this display list takes a long
+time, the second DLI on the 4th text line gets triggered before the first DLI
+has hit its ``RTI`` instruction. ANTIC interrupts the first DLI and starts the
+2nd DLI anyway. This effect is visible in the 5th line of text: the background
+color is bright again.
+
+.. figure:: dli_interrupting_dli.png
+   :align: center
+   :width: 70%
+
+But notice another artifact: the effect on the 5th line of text isn't on its
+first scan line, but its second:
+
+.. figure:: dli_interrupting_dli_detail.png
+   :align: center
+
+
+This is due to the fact that a WSYNC was called on the previous scan line, but
+the interrupt happened as well. The interrupt takes some cycles to begin, and
+by the time that happened **and** ANTIC stole all of its cycles to set up the
+text mode line, there weren't enough cycles left for the first ``WSYNC`` in the
+DLI code to happen on the same scan line. This forces that ``WSYNC`` to happen
+on the next line, causing the delay and the appearance of a 3rd scan line of the
+same color before the second DLI starts its color cycling.
+
+The second DLI completes and performs its ``RTI``, but then it returns control
+to the first DLI, which is already halfway done with its color cycling. When it
+resumes control, it is in 9th line of text on the screen, so it has four more
+color changes before it hits its own ``RTI``.
+
+
 DLIs in a Nutshell
 -----------------------
 
