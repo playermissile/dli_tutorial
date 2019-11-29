@@ -735,3 +735,12 @@ reuse of players and be able to use the collision registers to see what has
 happened in each region?
 
 
+
+Advanced DLI #4: Multiple Scrolling Regions
+------------------------------------------------------------------
+
+Splitting the screen vertically allows 2 (or more!) independent scrolling
+regions by changing the VSCROL and HSCROL values in the DLI so that the
+subsequent lines use different values.
+
+
