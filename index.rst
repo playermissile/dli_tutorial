@@ -679,8 +679,35 @@ The only trigger is in the display list itself, the DLI bit on the display list
 command.
 
 The display list can be modified in place to move the DLI to different lines
-without changing the DLI code itself.
+without changing the DLI code itself. The code to move the DLI is performed in
+the vertical blank to prevent the display list from being modified as ANTIC is
+using it to create the display:
 
+.. code-block::
+
+   move_dli_line
+           ldx last_dli_line ; get line number on screen of old DLI
+           lda dlist_line_lookup,x ; get offset into display list of that line number
+           tax
+           lda dlist_first,x ; remove DLI bit
+           and #$7f
+           sta dlist_first,x
+           ldx dli_line    ; get line number on screen of new DLI
+           stx last_dli_line ; remember
+           lda dlist_line_lookup,x ; get offset into display list of that line number
+           tax
+           lda dlist_first,x ; set DLI bit
+           ora #$80
+           sta dlist_first,x
+           rts
+
+The example allows the display list to be set on blank lines at the top of the
+display, and on the JVB command at the end of the display list to show that
+modes don't have to output any graphics to use a DLI.
+
+.. figure:: moving_dli.gif
+   :align: center
+   :width: 70%
 
 
 Advanced DLI #2: Multiple DLIs
