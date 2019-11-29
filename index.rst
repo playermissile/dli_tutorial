@@ -670,47 +670,7 @@ generally be done outside of the DLI and the DLI itself just handles the result
 of that work.
 
 
-Advanced DLI #1: Moving the DLI Up and Down the Screen
-------------------------------------------------------------
-
-The DLI subroutine itself doesn't directly know what scan line caused the
-interrupt because all DLIs are routed through the same vector at ``VDLSTL``.
-The only trigger is in the display list itself, the DLI bit on the display list
-command.
-
-The display list can be modified in place to move the DLI to different lines
-without changing the DLI code itself. The code to move the DLI is performed in
-the vertical blank to prevent the display list from being modified as ANTIC is
-using it to create the display:
-
-.. code-block::
-
-   move_dli_line
-           ldx last_dli_line ; get line number on screen of old DLI
-           lda dlist_line_lookup,x ; get offset into display list of that line number
-           tax
-           lda dlist_first,x ; remove DLI bit
-           and #$7f
-           sta dlist_first,x
-           ldx dli_line    ; get line number on screen of new DLI
-           stx last_dli_line ; remember
-           lda dlist_line_lookup,x ; get offset into display list of that line number
-           tax
-           lda dlist_first,x ; set DLI bit
-           ora #$80
-           sta dlist_first,x
-           rts
-
-The example allows the display list to be set on blank lines at the top of the
-display, and on the JVB command at the end of the display list to show that
-modes don't have to output any graphics to use a DLI.
-
-.. figure:: moving_dli.gif
-   :align: center
-   :width: 70%
-
-
-Advanced DLI #2: Multiple DLIs
+Advanced DLI #1: Multiple DLIs
 ------------------------------------------------------------
 
 One of the problems with having a single DLI vector is: what do you do when you
@@ -718,7 +678,7 @@ want to have more than one DLI?
 
 Some techniques that you will see in the wild:
 
- * use ``VCOUNT`` to check where you are on screen and branch to appropriate place
+ * use ``VCOUNT`` to check where you are on screen and branch accordingly
  * increment an index value and use that to determine which DLI has been called
  * change the ``VDLSTL`` vector to point to the next DLI in the chain
 
@@ -757,6 +717,46 @@ DLI saves 6 cycles (by obviating the need for ``LDA #>dli2; STA VDLSTL+1``).
 That may be enough for this optimization to be useful.
 
 .. figure:: multiple_dli_same_page.png
+   :align: center
+   :width: 70%
+
+
+Advanced DLI #2: Moving the DLI Up and Down the Screen
+------------------------------------------------------------
+
+The DLI subroutine itself doesn't directly know what scan line caused the
+interrupt because all DLIs are routed through the same vector at ``VDLSTL``.
+The only trigger is in the display list itself, the DLI bit on the display list
+command.
+
+The display list can be modified in place to move the DLI to different lines
+without changing the DLI code itself. The code to move the DLI is performed in
+the vertical blank to prevent the display list from being modified as ANTIC is
+using it to create the display:
+
+.. code-block::
+
+   move_dli_line
+           ldx last_dli_line ; get line number on screen of old DLI
+           lda dlist_line_lookup,x ; get offset into display list of that line number
+           tax
+           lda dlist_first,x ; remove DLI bit
+           and #$7f
+           sta dlist_first,x
+           ldx dli_line    ; get line number on screen of new DLI
+           stx last_dli_line ; remember
+           lda dlist_line_lookup,x ; get offset into display list of that line number
+           tax
+           lda dlist_first,x ; set DLI bit
+           ora #$80
+           sta dlist_first,x
+           rts
+
+The example allows the display list to be set on blank lines at the top of the
+display, and on the JVB command at the end of the display list to show that
+modes don't have to output any graphics to use a DLI.
+
+.. figure:: moving_dli.gif
    :align: center
    :width: 70%
 
