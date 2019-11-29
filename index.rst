@@ -716,14 +716,49 @@ Advanced DLI #2: Multiple DLIs
 One of the problems with having a single DLI vector is: what do you do when you
 want to have more than one DLI?
 
-Some solutions that you will see in the wild:
+Some techniques that you will see in the wild:
 
- * use ``VCOUNT`` to check where you are on screen
- * change ``VDLSTL`` to point to the next DLI in the chain
+ * use ``VCOUNT`` to check where you are on screen and branch to appropriate place
  * increment an index value and use that to determine which DLI has been called
+ * change the ``VDLSTL`` vector to point to the next DLI in the chain
 
-Here's another solution that can save some valuable cycles: put your DLIs in the same page of memory and only change the low byte.
+Here's an optimization of the last technique that can save some valuable
+cycles: put your DLIs in the same page of memory and only change the low byte.
 
+.. code-block::
+
+           *= (* & $ff00) + 256 ; next page boundary
+   
+   dli     pha             ; only using A register, so save it to the stack
+           lda #$55        ; new background color
+           sta WSYNC       ; first WSYNC gets us to start of scan line we want
+           sta COLBK       ; change background color
+           lda #<dli2      ; point to second DLI
+           sta VDSLST
+           pla             ; restore A register from stack
+           rti             ; always end DLI with RTI!
+   
+   dli2    pha             ; only using A register, so save it to the stack
+           lda #$88        ; new background color
+           sta WSYNC       ; first WSYNC gets us to start of scan line we want
+           sta COLBK       ; change background color
+           pla             ; restore A register from stack
+           rti             ; always end DLI with RTI!
+   
+   
+   vbi     lda #<dli       ; set DLI pointer to first in chain
+           sta VDSLST
+           lda #>dli
+           sta VDSLST+1
+           jmp XITVBV      ; always exit deferred VBI with jump here
+
+This is a simplistic example, but keeping the high byte constant inside the
+DLI saves 6 cycles (by obviating the need for ``LDA #>dli2; STA VDLSTL+1``).
+That may be enough for this optimization to be useful.
+
+.. figure:: multiple_dli_same_page.png
+   :align: center
+   :width: 70%
 
 
 Advanced DLI #3: Multiplexing Players & Collision Detection
