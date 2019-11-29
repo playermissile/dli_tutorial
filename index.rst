@@ -61,9 +61,14 @@ video drawing process.
 How TVs really (well, kinda approximately) work
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Real TVs are interlaced with 525 scan lines for NTSC and 625 for PAL. Every
-refresh interval, the electron beam draws one **field**, starting at the top
-left and drawing every other scan line. When it reaches the bottom, the
+Real TVs are interlaced with 525 scan lines for NTSC and 625 for PAL. Because
+of `reasons <https://en.wikipedia.org/wiki/NTSC#Lines_and_refresh_rate>`_, the
+NTSC vertical refresh interval is not exactly the whole number of 60Hz either,
+it's 60/1001 Hz or 59.94Hz. PAL refresh rate is apparently `exactly 50Hz
+<http://martin.hinner.info/vga/pal.html>`_.
+
+Every refresh interval, the electron beam draws one **field**, starting at the
+top left and drawing every other scan line. When it reaches the bottom, the
 vertical retrace starts, but this time it positions the electron beam at the
 first missing scan line. Then it draws the next field, again skipping every
 other scan line but this time filling in the scan lines it missed.
@@ -90,10 +95,29 @@ horizontal resolution of Antic Modes B through E in the standard width
 playfield. Antic Mode F (Graphics 8 in BASIC) has 320 addressable pixels,
 corresponding to half a color clock, and only artifacting color is available.
 
+For NTSC machines, each frame draws 262 scan lines with 228 color clocks per
+scan line, the operating frequency of the 6502 was chosen such that it takes
+exactly 114 machine cycles per scan line, producing 29868 machine cycles per
+frame. With a 59.94Hz vertical refresh rate this should result in a processor
+speed of 1.790287MHz but the Altirra Hardware Reference Manual shows that
+there are some subtleties to this calculation. It shows the processor speed is
+actually 1.790772MHz, but still uses 29868 cycles per frame, so the TV refresh
+rate is not exactly synced up with broadcast NTSC signals.
+
+PAL systems produce the same 228 color clocks and 114 machine cycles per line,
+but display 312 scan lines. This results in 35568 cycles per frame, and with
+the vertical refresh rate of 50Hz the processor should run at 1.778400MHz.
+Again, the Altirra reference manual shows slight deviations for complicated
+technical reasons resulting in a processor speed of 1.773447MHz. Similarly to
+NTSC, the computer still produces 35568 cycles per frame, just that the signal
+output for the TV is not exactly the same as broadcast PAL TV signals.
+
 .. seealso::
 
    * `All About Video Fields <https://lurkertech.com/lg/fields/>`_
    * `Composite artifact colors <https://en.wikipedia.org/wiki/Composite_artifact_colors>`_ article on Wikipedia
+   * Section 4.2 in the
+   `Altirra Hardware Reference Manual <http://www.virtualdub.org/downloads/Altirra%20Hardware%20Reference%20Manual.pdf>`_
 
 
 A Crash Course on Display Lists
@@ -109,28 +133,18 @@ in a 6502 reference. In fact, the amount of time ANTIC "steals" will depend on
 many factors: the graphics mode, player/missiles being used, playfield size,
 and more.
 
-Because of the NTSC signal, and the fact that each frame draws 262 scan lines
-with 228 color clocks per scan line, the operating frequency of the 6502 was
-chosen such that it takes exactly 114 machine cycles per scan line, producing
-29868 machine cycles per frame (and with a 60Hz refresh rate, results in a
-processor speed of 1.792MHz).
-
-.. note::
-
-   For PAL systems, the 312 scan lines have the same 228 color clocks and 114
-   machine cycles per line. This results in 35568 cycles per frame, but since
-   the frequency is 50Hz, the processor runs at 1.778MHz
-
-Since there are 228 color clocks but only 114 machine cycles per scan line,
-this means that in one machine cycle, two color clocks are drawn on the screen.
-A typical machine instruction might take 5 machine cycles, so 10 color clocks
+Since there are 228 color clocks and 114 machine cycles per scan line, this
+means that in one machine cycle, two color clocks are drawn on the screen. A
+typical machine instruction might take 5 machine cycles, so 10 color clocks
 could pass in the time to process a single instruction! This means we don't
-have much time per scan line, so it will mean that DLIs will have to be quick.
+have much time per scan line, so DLIs that attempt to change graphics in the
+middle of a line will have to be well optimized.
 
-It also means the 6502 is too slow to draw the screen itself, and this is where
-ANTIC's special "machine language" comes in. You program the ANTIC coprocessor
-using a display list, and ANTIC takes care of building the screen scan line by
-scan line, without any more intervention from the 6502 code. (Unless you ask for intervention! And that's what a DLI is.)
+It also means the 6502 is too slow to draw the screen itself, and this is
+where ANTIC's special "command language" comes in. You program the ANTIC
+coprocessor using a display list, and ANTIC takes care of building the screen
+scan line by scan line, without any more intervention from the 6502 code.
+(Unless you ask for intervention! And that's what a DLI is.)
 
 The display list is the special sequence of bytes that ANTIC interprets as a
 list of commands. Each command causes ANTIC to draw a certain number of scan
@@ -277,7 +291,7 @@ subsequent lines!
 
 .. seealso::
 
-   Chapter 4 in the
+   Section 4.14 in the
    `Altirra Hardware Reference Manual <http://www.virtualdub.org/downloads/Altirra%20Hardware%20Reference%20Manual.pdf>`_
    contains tables depicting exactly which cycles are stolen by ANTIC for
    each mode.
