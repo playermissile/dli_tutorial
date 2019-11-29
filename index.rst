@@ -3,7 +3,7 @@
 .. highlight:: ca65
 
 
-Crash Course on Advanced DLIs
+A Crash Course on Advanced DLIs
 =================================================================
 
 .. centered:: **Atari 8-bit Display List Interrupts: An Advanced Tutorial**

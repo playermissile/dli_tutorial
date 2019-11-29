@@ -35,9 +35,9 @@ dlist
         .sbyte           "missile   "
         .sbyte "  podcast presents  "
 
-        .sbyte +$c0, "    THE ADVANCED    "
-        .sbyte +$c0, "    CRASH COURSE    "
+        .sbyte +$c0, "   A CRASH COURSE   "
         .sbyte +$c0, "         ON         "
+        .sbyte +$c0, "      ADVANCED      "
         .sbyte +$c0, "    DISPLAY LIST    "
         .sbyte +$c0, "     INTERRUPTS     "
 
