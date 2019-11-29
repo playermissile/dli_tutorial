@@ -89,9 +89,9 @@ to say that color happens.
 
 On the Atari, a unit called the color clock is the smallest portion of a scan
 line that can be displayed with an arbitrary color. There are 228 color clocks
-per scan line, of which about 160 were typically visible on a TV display in the
-1970s when the Atari was developed. This corresponds to the 160 pixel
-horizontal resolution of Antic Modes B through E in the standard width
+per scan line, of which about 160 were typically visible on a cathode-ray TV
+display in the 1970s when the Atari was developed. This corresponds to the 160
+pixel horizontal resolution of Antic Modes B through E in the standard width
 playfield. Antic Mode F (Graphics 8 in BASIC) has 320 addressable pixels,
 corresponding to half a color clock, and only artifacting color is available.
 
@@ -116,8 +116,7 @@ output for the TV is not exactly the same as broadcast PAL TV signals.
 
    * `All About Video Fields <https://lurkertech.com/lg/fields/>`_
    * `Composite artifact colors <https://en.wikipedia.org/wiki/Composite_artifact_colors>`_ article on Wikipedia
-   * Section 4.2 in the
-   `Altirra Hardware Reference Manual <http://www.virtualdub.org/downloads/Altirra%20Hardware%20Reference%20Manual.pdf>`_
+   * Section 4.2 in the `Altirra Hardware Reference Manual <http://www.virtualdub.org/downloads/Altirra%20Hardware%20Reference%20Manual.pdf>`_
 
 
 A Crash Course on Display Lists
@@ -167,10 +166,11 @@ commands. Commands are encoded into the byte using a bitmask where low 4 bits
 encode the graphics mode or command and the high 4 bits encode the flags that
 affect that command:
 
-.. csv-table::
-
-    Bit, 7, 6, 5, 4, 3-0
-       , DLI, LMS, VSCROLL, HSCROLL, Mode
+  +-----+-----+---------+---------+-----+-----+-----+-----+
+  |  7  |  6  |  5      |    4    |  3  |  2  |  1  |  0  |
+  +-----+-----+---------+---------+-----+-----+-----+-----+
+  | DLI | LMS | VSCROLL | HSCROLL |  Mode                 |
+  +-----+-----+---------+---------+-----+-----+-----+-----+
 
 The 4 flags are:
 
@@ -179,7 +179,7 @@ The 4 flags are:
  * VSCROLL (``$20``): enable vertical scrolling for this mode line
  * HSCROLL (``$10``): enable horizontal scrolling for this mode line
 
-The 14 available graphics modes are encoded into bits 3-0 using values as shown
+The 14 available graphics modes are encoded into low 4 bits using values as shown
 in this table:
 
 .. csv-table::
@@ -191,20 +191,34 @@ in this table:
     5, 05,    n/a,   40 x 12,  16, text, 4
     6, 06,    1,     20 x 24,   8, text, 5
     7, 07,    2,     20 x 12,  16, text, 5
-    8, 08,    3,     40 x 24,   8, graphic, 4
-    9, 09,    4,     80 x 48,   4, graphic, 2
-    A, 10,    5,     80 x 48,   4, graphic, 4
-    B, 11,    6,    160 x 96,   2, graphic, 2
-    C, 12,    n/a,  160 x 192,  1, graphic, 2
-    D, 13,    7,    160 x 96,   2, graphic, 4
-    E, 14,    n/a,  160 x 192,  1, graphic, 4
-    F, 15,    8,    320 x 192,  1, graphic*, 2
+    8, 08,    3,     40 x 24,   8, bitmap, 4
+    9, 09,    4,     80 x 48,   4, bitmap, 2
+    A, 10,    5,     80 x 48,   4, bitmap, 4
+    B, 11,    6,    160 x 96,   2, bitmap, 2
+    C, 12,    n/a,  160 x 192,  1, bitmap, 2
+    D, 13,    7,    160 x 96,   2, bitmap, 4
+    E, 14,    n/a,  160 x 192,  1, bitmap, 4
+    F, 15,    8,    320 x 192,  1, bitmap*, 2
 
-*mode F is also used as the basis for the GTIA modes (Graphics 9, 10, & 11),
-but this is a topic outside the scope of this tutorial.
+*mode F is also used as the basis for the GTIA modes (BASIC Graphics modes 9,
+10, & 11), but this is a topic outside the scope of this tutorial.
 
 Blank lines are encoded as a mode value of zero, the bits 6, 5, and 4 taking
-the meaning of the number of blank lines rather than LMS, VSCROLL, and HSCROLL. Note that the DLI bit is still available on blank lines, however, as bit 7 is not co-opted by the blank line instruction.
+the meaning of the number of blank lines rather than LMS, VSCROLL, and
+HSCROLL. Note that the DLI bit is still available on blank lines, as bit 7 is
+not co-opted by the blank line instruction.
+
+.. csv-table::
+
+    Command, Decimal, Blank Lines
+    0, 0, 1
+    10, 16, 2
+    20, 32, 3
+    30, 48, 4
+    40, 64, 5
+    50, 80, 6
+    60, 96, 7
+    70, 112, 8
 
 Jumps provide the capability to split a display list into multiple parts in
 different memory locations. They are encoded using a mode value of one, and
@@ -218,7 +232,8 @@ vertical blank starts on the 249th scan line.
 .. note::
 
    Apart from the ``$41`` JVB command, splitting display lists using the
-   ``$01`` command is not common. It produces a blank line in the display list.
+   ``$01`` command is not common. It has a side-effect of producing a single
+   blank line in the display list.
 
 The typical method to change the currently active display list is to change the
 address stored at ``SDLSTL`` (in low byte/high byte format in addresses
@@ -271,23 +286,23 @@ the 114 cycles of each scan line, but where it happens (and how many times the
 
 For overhead, ANTIC will typically steal 3 cycles to read the display list, 5
 cycles if player/missile graphics are enabled, and 9 cycles for memory
-refreshing.
+refreshing. Scrolling requires additional cycle stealing because ANTIC needs
+to fetch more memory.
 
-Graphics modes (modes 8 - F) have cycles stolen corresponding to the number of
-bytes-per-line used in that mode, in addition to the up-to 17 cycles stolen for
-ANTIC overhead. For example, mode E will use an additional 40 cycles, so in the
-context of writing a game, the typical number of cycles used could be 57 out of
-the 114 cycles per scan line. This means you typically have only half of the
-cycles available for your 6502 code!
+Bitmapped modes (modes 8 - F) have cycles stolen corresponding to the number
+of bytes-per-line used in that mode, in addition to the up-to 17 cycles stolen
+for ANTIC overhead. For example, mode E will use an additional 40 cycles, so
+in the context of writing a DLI for a game, the typical number of stolen cycles
+could be 57 out of the 114 cycles per scan line.
 
-Text modes are the worst-case scenario, because ANTIC must fetch the font
-glyphs in addition to its other work. The first scan line of a font mode is
-almost entirely used by ANTIC and only a small number of cycles is available to
-the 6502. For normal 40-byte wide playfields, the first line of ANTIC modes 2
-through 5 will yield at most about 30 cycles and subsequent lines about 60
-cycles per scan line. Adding player/missile graphics and scrolling can reduce
-the available cycles to less than 10 on the first line and about 30 on
-subsequent lines!
+Text modes steal additional cycles over bitmapped graphics modes, because
+ANTIC must fetch the font glyphs in addition to its other work. The first scan
+line of a font mode is almost entirely used by ANTIC and only a small number
+of cycles is available to the 6502. For normal 40-byte wide playfields, the
+first line of ANTIC modes 2 through 5 will yield at most about 30 cycles and
+subsequent lines about 60 cycles per scan line. Adding player/missile graphics
+and scrolling can reduce the available cycles to less than 10 on the first
+line and about 30 on subsequent lines!
 
 .. seealso::
 
