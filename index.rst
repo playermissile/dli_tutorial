@@ -272,7 +272,7 @@ that contains different text modes mixed in a single screen.
 
 .. figure:: sample_display_list.png
    :align: center
-   :width: 70%
+   :width: 90%
 
 
 Cycle Stealing by ANTIC
@@ -388,7 +388,7 @@ but note that running this example causes a flickering line in the background:
 
 .. figure:: first_dli.gif
    :align: center
-   :width: 70%
+   :width: 90%
 
 
 
@@ -414,7 +414,7 @@ least the next several instructions without artifacts appearing on screen.
 
 .. figure:: first_dli_with_wsync.png
    :align: center
-   :width: 70%
+   :width: 90%
 
 .. note::
 
@@ -472,7 +472,7 @@ mode 4.
 
 .. figure:: rainbow_wsync.png
    :align: center
-   :width: 70%
+   :width: 90%
 
 
 
@@ -536,7 +536,7 @@ color is bright again.
 
 .. figure:: dli_interrupting_dli.png
    :align: center
-   :width: 70%
+   :width: 90%
 
 But notice another artifact: the effect on the 5th line of text isn't on its
 first scan line, but its second:
@@ -718,7 +718,7 @@ That may be enough for this optimization to be useful.
 
 .. figure:: multiple_dli_same_page.png
    :align: center
-   :width: 70%
+   :width: 90%
 
 
 Advanced DLI #2: Moving the DLI Up and Down the Screen
@@ -758,7 +758,7 @@ modes don't have to output any graphics to use a DLI.
 
 .. figure:: moving_dli.gif
    :align: center
-   :width: 70%
+   :width: 90%
 
 
 Advanced DLI #3: Multiplexing Players & Collision Detection
@@ -849,7 +849,7 @@ band has two rows of mode 6 text with labels):
 
 .. figure:: simple_multiplex_player.png
    :align: center
-   :width: 70%
+   :width: 90%
 
 The players in band A are positioned by the VBI, and so are in place from well
 off the top of the screen. When the first DLI hits, the color is changed at
@@ -870,7 +870,7 @@ were changed without visible artifacts:
 
 .. figure:: simple_multiplex_player_no_wsync.png
    :align: center
-   :width: 70%
+   :width: 90%
 
 but this is very simple code and the more real-world example in the next
 section will show that a buffer zone of several scan lines is necessary to
