@@ -260,7 +260,7 @@ CASBUF   = $03fd
 
 ; GTIA write locations
 HPOSP0   = $d000
-HOPSP1   = $d001
+HPOSP1   = $d001
 HPOSP2   = $d002
 HPOSP3   = $d003
 HPOSM0   = $d004
