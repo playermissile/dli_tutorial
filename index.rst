@@ -371,6 +371,56 @@ until location ``$14`` changes, then set ``NMIEN``:
            sta NMIEN
 
 
+Hardware Registers and Shadow Registers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When developing a DLI, it is important to understand the difference between a
+hardware register and its shadow register equivalent (if it has one). Hardware
+registers are exactly that: memory mapped locations of the supplemental
+integrated circuits that control special features of the Atari. They are
+usually either read-only or write-only, and many times the same address
+handles wildly different features depending on whether the address is read
+from or written to.
+
+Shadow registers are in low RAM (typically page 2) that are labeled as
+performing the same function as a hardware register, with two important
+differences. First, they can be both read and written to, so (assuming you use
+the shadow register to update the hardware register) it is possible to find
+out the current state of a hardware register by reading its shadow. Second,
+the hardware register is only updated **once every vertical blank** by an
+operating system routine that copies the shadow value to its hardware
+counterpart.
+
+The shadow registers are a convenience for development in higher level
+languages like BASIC where speed is not paramount. But code within a DLI must
+use hardware registers directly to affect change on a scan line.
+
+The shadow registers are still useful if you are still using the OS immediate
+vertical blank routine (i.e. you are only using the deferred vertical blank
+``VVBLKD`` at ``$224`` and haven't replaced the immediate vertical blank
+rountine ``VVBLKI`` at ``$222``). It will copy things like grahpics colors and
+the character set address to their hardware registers, which will reset those
+features for the top of the screen at the next frame. Other hardware registers
+have no shadows, like player position and size, so your own VBI must reset
+these to their correct values for the top of the screen.
+
+
+.. csv-table:: Some Useful Shadow Registers
+
+    Shadow, Hex, Hardware, Hex, Description
+    GPRIOR, 26f, PRIOR, d01b, Player/playfield priority selection register
+    PCOLR0, 2c0, COLPM0, d012, Color of player/missile 0
+    PCOLR1, 2c1, COLPM1, d013, Color of player/missile 1
+    PCOLR2, 2c2, COLPM2, d014, Color of player/missile 2
+    PCOLR3, 2c3, COLPM3, d015, Color of player/missile 3
+    COLOR0, 2c4, COLPF0, d016, Color of playfield 0
+    COLOR1, 2c5, COLPF1, d017, Color of playfield 1
+    COLOR2, 2c6, COLPF2, d018, Color of playfield 2
+    COLOR3, 2c7, COLPF3, d019, Color of playfield 3
+    COLOR4, 2c8, COLBK, d01a, Background color
+    CHACT, 2f3, CHACTL, d401, Character mode (inverse, upside-down characters)
+    CHBAS, 2f4, CHBASE, d409, Character base (page number of font)
+
 
 A Simple Example
 ~~~~~~~~~~~~~~~~~~~~~
