@@ -912,21 +912,40 @@ band has two rows of mode 6 text with labels):
    :width: 90%
 
 The players in band A are positioned by the VBI, and so are in place from well
-off the top of the screen. When the first DLI hits, the color is changed at
-the ``WSYNC`` and there is enough time drawing the first scan line of band B
-that players 0, 1, and 2 are positioned correctly, but by the time ``HPOSP3``
-is set, ANTIC has finished drawing player 3 in its old position. Notice that
-none of the sizes are set until the 2nd scan line of band B.
+off the top of the screen.
+
+Band B shows some problems. When the first DLI hits on the last scan line of
+the 6th line of text, the background color is changed at the ``WSYNC`` and
+ANTIC moves on to start drawing the first scan line of the 7th line of text
+(which is the first line of text in band B.) Players 0, 1, and 2 are
+positioned correctly, which means their horizontal positions were set before
+ANTIC reached that portion of the scan line. The 3rd player remains in the
+same position as it was in band A, meaning that its horizontal position wasn't
+set in time. ANTIC had stolen enough cycles setting up the mode 4 font that
+the 6502 didn't get a chance to process the ``sta HPOS3`` before ANTIC had to
+draw that portion of the scan line.
+
+Notice also that none of the sizes are set until the 2nd scan line of band B.
 
 The transition to band C with the ``dli2`` routine produces similar results,
 there just isn't enough time with the ``WSYNC`` used for the color change
-*and* all the cycles stolen by ANTIC mode 4 to process the player changes in
-the first scan line of the band.
+*and* all the cycles stolen by ANTIC mode 4 to process the all of the player
+changes in the first scan line of the band. Players 0, 1, and 2 are moved,
+player 3 is not, and all 4 players don't get the correct size until the 2nd
+scan line of the band.
 
-Again, I purposely chose mode 4 (in all of its cycle-stealing glory) for these
-examples to get an idea of the worst-case scenerio. Taking out the ``WSYNC``
-and the color change did allow enough time that both the positions and sizes
-were changed without visible artifacts:
+It's possible to imagine a scenerio where a scan line of a player is not
+visible at all. For example, if player 3 above had been positioned very far to
+the right and ``HPOSP3`` was changed to move player 3 to the far left side, it
+could be possible that ANTIC has already drawn the left side of the screen but
+hadn't yet reached the right side where player 3 had been positioned. Because
+``HPOSP3`` is now showing that player 3 is on the left side of the screen,
+ANTIC would not draw it at its old location on the right side of the screen.
+
+As in the `Timing Limitations of DLIs`_ section, mode 4 was chosen (in all of
+its cycle-stealing glory) for these examples to get an idea of the worst-case
+scenerio. Taking out the ``WSYNC`` and the color change did allow enough time
+that both the positions and sizes were changed without visible artifacts:
 
 .. figure:: simple_multiplex_player_no_wsync.png
    :align: center
@@ -934,7 +953,8 @@ were changed without visible artifacts:
 
 but this is very simple code and the more real-world example in the next
 section will show that a buffer zone of several scan lines is necessary to
-make sure a player isn't split across a band boundary.
+make sure a player isn't split across a band boundary or even missing a scan
+line as described above.
 
 
 Advanced Multiplexing 
