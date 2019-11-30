@@ -786,11 +786,11 @@ Advanced DLI #2: Moving the DLI Up and Down the Screen
 
 The DLI subroutine itself doesn't directly know what scan line caused the
 interrupt because all DLIs are routed through the same vector at ``VDLSTL``.
-The only trigger is in the display list itself, the DLI bit on the display list
+The only trigger is in the display list: the DLI bit on the display list
 instruction.
 
 The display list can be modified in place to move the DLI to different lines
-without changing the DLI code itself. The code to move the DLI is performed in
+without changing any DLI code. The code to move the DLI should be performed in
 the vertical blank to prevent the display list from being modified as ANTIC is
 using it to create the display:
 
