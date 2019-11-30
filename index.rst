@@ -764,10 +764,124 @@ modes don't have to output any graphics to use a DLI.
 Advanced DLI #3: Multiplexing Players & Collision Detection
 ------------------------------------------------------------------
 
-Simple multiplexing players of is easy, you just set a new value for one of the
-player or missile X position registers. But what if you want to have *a lot* of
-reuse of players and be able to use the collision registers to see what has
-happened in each region?
+Simple Multiplexing
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Simple multiplexing players of is easy, you just set a new value for one of
+the player or missile X position registers. This demo uses the page-alignment
+trick for the second DLI, and changes the position and size of the players at
+each interrupt.
+
+This demo splits the screen vertically into 3 horizontal bands, call them A, B
+& C. The way to think of this technique is that the VBI sets the players for
+band A, the ``dli`` routine is the bottom of band A (and the top of band B)
+and therefore sets the players for band B, and the ``dli2`` routine is the
+bottom of band B (and the top of band C) and controls the players for band C.
+
+.. code-block::
+
+   vbi     lda #<dli       ; set DLI pointer to first in chain
+           sta VDSLST
+           lda #>dli
+           sta VDSLST+1
+           lda #$40        ; set player positions and sizes ...
+           sta HPOSP0      ;   for the top of the screen
+           lda #$60
+           sta HPOSP1
+           lda #$80
+           sta HPOSP2
+           lda #$a0
+           sta HPOSP3
+           lda #0
+           sta SIZEP0
+           sta SIZEP1
+           sta SIZEP2
+           sta SIZEP3
+           jmp XITVBV      ; always exit deferred VBI with jump here
+   
+           *= (* & $ff00) + 256 ; next page boundary
+   
+   dli     pha             ; only using A register, so save it to the stack
+           lda #$55        ; new background color
+           sta WSYNC       ; first WSYNC gets us to start of scan line we want
+           sta COLBK       ; change background color
+           lda #$30        ; change position and sizes of players
+           sta HPOSP0
+           lda #$40
+           sta HPOSP1
+           lda #$50
+           sta HPOSP2
+           lda #$60
+           sta HPOSP3
+           lda #1
+           sta SIZEP0
+           sta SIZEP1
+           sta SIZEP2
+           sta SIZEP3
+           lda #<dli2      ; point to second DLI
+           sta VDSLST
+           pla             ; restore A register from stack
+           rti             ; always end DLI with RTI!
+   
+   dli2    pha             ; only using A register, so save it to the stack
+           lda #$84        ; new background color
+           sta WSYNC       ; first WSYNC gets us to start of scan line we want
+           sta COLBK       ; change background color
+           lda #$40        ; change position and sizes of players
+           sta HPOSP0
+           lda #$70
+           sta HPOSP1
+           lda #$90
+           sta HPOSP2
+           lda #$b0
+           sta HPOSP3
+           lda #3
+           sta SIZEP0
+           sta SIZEP1
+           sta SIZEP2
+           sta SIZEP3
+           pla             ; restore A register from stack
+           rti             ; always end DLI with RTI!
+
+
+Notice some timing issues below (players are labeled 0 through 3, and each
+band has two rows of mode 6 text with labels):
+
+.. figure:: simple_multiplex_player.png
+   :align: center
+   :width: 70%
+
+The players in band A are positioned by the VBI, and so are in place from well
+off the top of the screen. When the first DLI hits, the color is changed at
+the ``WSYNC`` and there is enough time drawing the first scan line of band B
+that players 0, 1, and 2 are positioned correctly, but by the time ``HPOSP3``
+is set, ANTIC has finished drawing player 3 in its old position. Notice that
+none of the sizes are set until the 2nd scan line of band B.
+
+The transition to band C with the ``dli2`` routine produces similar results,
+there just isn't enough time with the ``WSYNC`` used for the color change
+*and* all the cycles stolen by ANTIC mode 4 to process the player changes in
+the first scan line of the band.
+
+Again, I purposely chose mode 4 (in all of its cycle-stealing glory) for these
+examples to get an idea of the worst-case scenerio. Taking out the ``WSYNC``
+and the color change did allow enough time that both the positions and sizes
+were changed without visible artifacts:
+
+.. figure:: simple_multiplex_player_no_wsync.png
+   :align: center
+   :width: 70%
+
+but this is very simple code and the more real-world example in the next
+section will show that a buffer zone of several scan lines is necessary to
+make sure a player isn't split across a band boundary.
+
+
+Advanced Multiplexing 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+But what if you want to have *a lot* of reuse of players and be able to use
+the collision registers to see what has happened in each region?
 
 
 
