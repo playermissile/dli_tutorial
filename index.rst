@@ -140,14 +140,14 @@ have much time per scan line, so DLIs that attempt to change graphics in the
 middle of a line will have to be well optimized.
 
 It also means the 6502 is too slow to draw the screen itself, and this is
-where ANTIC's special "command language" comes in. You program the ANTIC
+where ANTIC's special "instruction set" comes in. You program the ANTIC
 coprocessor using a display list, and ANTIC takes care of building the screen
 scan line by scan line, without any more intervention from the 6502 code.
 (Unless you ask for intervention! And that's what a DLI is.)
 
 The display list is the special sequence of bytes that ANTIC interprets as a
-list of commands. Each command causes ANTIC to draw a certain number of scan
-lines in a particular way. A DLI can be set on any ANTIC command.
+list of instruction. Each instruction causes ANTIC to draw a certain number of
+scan lines in a particular way. A DLI can be set on any ANTIC instruction.
 
 ANTIC supports display lists that produce at most 240 scan lines (even on PAL
 systems where many more scan lines are available), and the vertical blank
@@ -160,11 +160,14 @@ followed by 192 scan lines of display, then 24 blank lines, and finally the
 vertical blank that consumes the remaining 14 scan lines on NTSC (or 64 on
 PAL).
 
-An ANTIC display list command consists of 1 byte with an optional 2 byte
-address. There are 3 types of commands: blank lines, graphics modes, and jump
-commands. Commands are encoded into the byte using a bitmask where low 4 bits
-encode the graphics mode or command and the high 4 bits encode the flags that
-affect that command:
+Display List Instruction Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An ANTIC display list instruction consists of 1 byte with an optional 2 byte
+address. There are 3 types of instructions: blank lines, graphics modes, and
+jump instructions. Instructions are encoded into the byte using a bitmask
+where low 4 bits encode the graphics mode or feature and the high 4 bits
+encode the flags that affect that instruction:
 
   +-----+-----+---------+---------+-----+-----+-----+-----+
   |  7  |  6  |  5      |    4    |  3  |  2  |  1  |  0  |
@@ -175,7 +178,7 @@ affect that command:
 The 4 flags are:
 
  * DLI (``$80``): enable a display list interrupt when processing this instruction
- * LMS (``$40``): trigger a Load Memory Scan, changing where ANTIC looks for screen data, and requires an additional 2 byte address immediately following this command byte.
+ * LMS (``$40``): trigger a Load Memory Scan, changing where ANTIC looks for screen data, and requires an additional 2 byte address immediately following this instruction byte.
  * VSCROLL (``$20``): enable vertical scrolling for this mode line
  * HSCROLL (``$10``): enable horizontal scrolling for this mode line
 
@@ -208,9 +211,9 @@ the meaning of the number of blank lines rather than LMS, VSCROLL, and
 HSCROLL. Note that the DLI bit is still available on blank lines, as bit 7 is
 not co-opted by the blank line instruction.
 
-.. csv-table::
+.. csv-table:: Blank Line Instructions
 
-    Command, Decimal, Blank Lines
+    Hex, Decimal, Blank Lines
     0, 0, 1
     10, 16, 2
     20, 32, 3
@@ -223,7 +226,7 @@ not co-opted by the blank line instruction.
 Jumps provide the capability to split a display list into multiple parts in
 different memory locations. They are encoded using a mode value of one, and
 require an additional 2 byte address where ANTIC will look for the next display
-list command. If bit 6 is also set, it becomes the Jump and wait for Vertical
+list instruction. If bit 6 is also set, it becomes the Jump and wait for Vertical
 Blank (JVB) instruction, which is how ANTIC knows that the display list is
 finished. The DLI bit may also be set on a jump instruction, but if set on the
 JVB instruction it triggers a DLI on every scan line from there until the
@@ -231,9 +234,9 @@ vertical blank starts on the 249th scan line.
 
 .. note::
 
-   Apart from the ``$41`` JVB command, splitting display lists using the
-   ``$01`` command is not common. It has a side-effect of producing a single
-   blank line in the display list.
+   Apart from the ``$41`` JVB instruction, splitting display lists using other
+   jumps like the ``$01`` instruction is not common. It has a side-effect of
+   producing a single blank line in the display list.
 
 The typical method to change the currently active display list is to change the
 address stored at ``SDLSTL`` (in low byte/high byte format in addresses
@@ -427,7 +430,7 @@ DLIs Don't Have to be Short
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 DLIs can really be thought of as a way for your program to be told when a
-certain display list command is reached. Apart from the setup and teardown of
+certain display list insltruction is reached. Apart from the setup and teardown of
 the DLI subroutine itself and some timing limitations discussed in the next
 section, arbitrary code can be executed in a DLI.
 
@@ -727,7 +730,7 @@ Advanced DLI #2: Moving the DLI Up and Down the Screen
 The DLI subroutine itself doesn't directly know what scan line caused the
 interrupt because all DLIs are routed through the same vector at ``VDLSTL``.
 The only trigger is in the display list itself, the DLI bit on the display list
-command.
+instruction.
 
 The display list can be modified in place to move the DLI to different lines
 without changing the DLI code itself. The code to move the DLI is performed in
@@ -753,7 +756,7 @@ using it to create the display:
            rts
 
 The example allows the display list to be set on blank lines at the top of the
-display, and on the JVB command at the end of the display list to show that
+display, and on the JVB instruction at the end of the display list to show that
 modes don't have to output any graphics to use a DLI.
 
 .. figure:: moving_dli.gif
