@@ -58,8 +58,8 @@ a scan line.
 This simplified description is the mental model we will use to describe the
 video drawing process.
 
-How TVs really (well, kinda approximately) work
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+How Interlacing Works (approximately) and Why We Ignore It
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Real TVs are interlaced with 525 scan lines for NTSC and 625 for PAL. Because
 of `reasons <https://en.wikipedia.org/wiki/NTSC#Lines_and_refresh_rate>`_, the
@@ -83,6 +83,13 @@ speaking, you do not need to care that the screen is interlaced. If the Atari
 is displaying an unchanging screen, it produces the same information in the 262
 scan lines it generates regardless of which field it is drawing.
 
+.. seealso::
+
+   * `All About Video Fields <https://lurkertech.com/lg/fields/>`_
+
+How Color Works and Why Are You Waving Your Hands Like That, Oh Author Person?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 How TVs produce the colors that they display is very complicated and so far
 outside the scope of this tutorial that it might as well be magic. Suffice it
 to say that color happens.
@@ -94,6 +101,15 @@ display in the 1970s when the Atari was developed. This corresponds to the 160
 pixel horizontal resolution of Antic Modes B through E in the standard width
 playfield. Antic Mode F (Graphics 8 in BASIC) has 320 addressable pixels,
 corresponding to half a color clock, and only artifacting color is available.
+
+.. seealso::
+
+   * `NTSC Demystified <https://sagargv.blogspot.com/2011/04/ntsc-demystified-part-1-b-video-and.html>`_, a very long series of blog posts describing NTSC encoding
+   * Obligatory link to the `NTSC article on Wikipedia <https://en.wikipedia.org/wiki/NTSC>`_
+   * `Composite artifact colors <https://en.wikipedia.org/wiki/Composite_artifact_colors>`_ article on Wikipedia
+
+How The CPU Frequency Was Chosen and Why Is There More Hand Waving Going On Here?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For NTSC machines, each frame draws 262 scan lines with 228 color clocks per
 scan line, the operating frequency of the 6502 was chosen such that it takes
@@ -114,9 +130,7 @@ output for the TV is not exactly the same as broadcast PAL TV signals.
 
 .. seealso::
 
-   * `All About Video Fields <https://lurkertech.com/lg/fields/>`_
-   * `Composite artifact colors <https://en.wikipedia.org/wiki/Composite_artifact_colors>`_ article on Wikipedia
-   * Section 4.2 in the `Altirra Hardware Reference Manual <http://www.virtualdub.org/downloads/Altirra%20Hardware%20Reference%20Manual.pdf>`_
+   * Section 4.2 in the `Altirra Hardware Reference Manual <http://www.virtualdub.org/downloads/Altirra%20Hardware%20Reference%20Manual.pdf>`_ for much more technical detail and far, far less hand-waving.
 
 
 A Crash Course on Display Lists
