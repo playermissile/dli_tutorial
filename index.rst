@@ -270,7 +270,19 @@ here and the screen drawing will commence using the new display list.
 A Sample Display List
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Here is a display list:
+Here is a display list that contains different text modes mixed in a single screen.
+
+
+.. figure:: sample_display_list.png
+   :align: center
+   :width: 90%
+
+.. raw:: html
+
+   <ul>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/sample_display_list.s">sample_display_list.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/sample_display_list.xex">sample_display_list.xex</a></li>
+   </ul>
 
 .. code-block::
 
@@ -286,12 +298,6 @@ Here is a display list:
            .byte $70          ; 8 blank lines
            .byte 2,5          ; Mode 2 followed by mode 5
            .byte $41,<dlist,>dlist ; JVB, restart same display list on next frame
-
-that contains different text modes mixed in a single screen.
-
-.. figure:: sample_display_list.png
-   :align: center
-   :width: 90%
 
 
 Cycle Stealing by ANTIC
@@ -448,6 +454,13 @@ correct values for the top of the screen.
 A Simple Example
 ~~~~~~~~~~~~~~~~~~~~~
 
+A common use of display lists is to change colors in the middle of the
+screen.
+
+.. figure:: first_dli.gif
+   :align: center
+   :width: 90%
+
 .. raw:: html
 
    <ul>
@@ -455,49 +468,65 @@ A Simple Example
    <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/first_dli.xex">first_dli.xex</a></li>
    </ul>
 
-A common use of display lists is to change colors part of the way down the
-screen. This first display list interrupt will change the color of the
-background:
+Here is our first display list interrupt:
 
 .. code-block::
 
-   dli     pha
-           lda #$7a
-           sta COLBK
-           pla
-           rti
+   dli     pha             ; only using A register, so save old value to the stack
+           lda #$7a        ; new background color
+           sta COLBK       ; store it in the hardware register
+           pla             ; restore the A register
+           rti             ; always end DLI with RTI!
 
-but note that running this example causes a flickering line in the background:
+This is all the code it takes to change the color of the background. The
+obvious effect is the flickering line in the background, which we will solve
+in the next section.
 
-.. figure:: first_dli.gif
-   :align: center
-   :width: 90%
+Examining the code shows the boilerplate discussed `above <A Crash Course on
+Display List Interrupts_>`_ where DLIs always end with the ``RTI`` instruction
+and any registers used must be saved before your code changes them, and
+restored upon exit.
 
+The work performed in the interrupt is just two instructions: a load of a
+color value and a store where it puts it in the *hardware* register for the
+background color. Again, as noted `above <Hardware & Shadow Registers_>`_,
+hardware registers must be used in DLIs, not the shadow registers as shadow
+registers are ignored until the vertical blank.
 
 
 A Simple Example with WSYNC
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The Atari provides a way to sync with a scan line, and that's triggered by
-saving some value (any value, the bit pattern is not important) to the
-``WSYNC`` memory location at ``$d40a``. This causes the 6502 to stop processing
-instructions until the electron beam nears the end of the scan line, at which
-point the 6502 will resume executing instructions. Because the electron beam is
-usually off-screen at this point, it is safe to change color registers for at
-least the next several instructions without artifacts appearing on screen.
-
-.. code-block::
-
-   dli     pha
-           lda #$7a
-           sta WSYNC
-           sta COLBK
-           pla
-           rti
+The Atari provides a way to sync with a scan line to avoid the flickering effect
+of the previous example.
 
 .. figure:: first_dli_with_wsync.png
    :align: center
    :width: 90%
+
+.. raw:: html
+
+   <ul>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/rainbow_wsync.s">rainbow_wsync.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/rainbow_wsync.xex">rainbow_wsync.xex</a></li>
+   </ul>
+
+The flickering is avoided by saving some value (any value, the bit pattern is
+not important) to the ``WSYNC`` memory location at ``$d40a``. This causes the
+6502 to stop processing instructions until the electron beam nears the end of
+the scan line, at which point the 6502 will resume executing instructions.
+Because the electron beam is usually off-screen at this point, it is safe to
+change color registers for at least the next several instructions without
+artifacts appearing on screen.
+
+.. code-block::
+
+   dli     pha             ; only using A register, so save old value to the stack
+           lda #$7a        ; new background color
+           sta WSYNC       ; any value saved to WSYNC will trigger the pause
+           sta COLBK       ; store it in the hardware register
+           pla             ; restore the A register
+           rti             ; always end DLI with RTI!
 
 .. note::
 
@@ -509,8 +538,19 @@ least the next several instructions without artifacts appearing on screen.
 DLIs Don't Have to be Short
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. figure:: rainbow_wsync.png
+   :align: center
+   :width: 90%
+
+.. raw:: html
+
+   <ul>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/rainbow_wsync.s">rainbow_wsync.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/rainbow_wsync.xex">rainbow_wsync.xex</a></li>
+   </ul>
+
 DLIs can really be thought of as a way for your program to be told when a
-certain display list insltruction is reached. Apart from the setup and teardown of
+certain display list instruction is reached. Apart from the setup and teardown of
 the DLI subroutine itself and some timing limitations discussed in the next
 section, arbitrary code can be executed in a DLI.
 
@@ -523,8 +563,8 @@ section, arbitrary code can be executed in a DLI.
    of a text mode. I don't know why I thought that something bad would happen
    if a DLI went long, but I did.
 
-The following example shows how to have a single DLI affect multiple scan
-lines, even crossing into subsequent ANTIC mode 4 lines in the display list:
+This example shows how to have a single DLI affect multiple scan lines, even
+crossing into subsequent ANTIC mode 4 lines in the display list:
 
 .. code-block::
 
@@ -546,21 +586,26 @@ lines, even crossing into subsequent ANTIC mode 4 lines in the display list:
            pla             ; restore X & A registers from stack
            tax
            pla
-           rti
+           rti             ; always end DLI with RTI!
 
 It changes background colors 16 times, where each color change lasts 2 scan
 lines. So 32 scan lines means that it covers 4 display list entries of ANTIC
 mode 4.
 
 
-.. figure:: rainbow_wsync.png
+Timing Limitations of DLIs
+-----------------------------------
+
+.. figure:: dli_interrupting_dli.png
    :align: center
    :width: 90%
 
+.. raw:: html
 
-
-Timing Limitations of DLIs
------------------------------------
+   <ul>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/dli_interrupting_dli.s">dli_interrupting_dli.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/dli_interrupting_dli.xex">dli_interrupting_dli.xex</a></li>
+   </ul>
 
 The timing limitations are:
 
@@ -591,7 +636,7 @@ bright pink and gets dimmer down to a dark red after 32 scan lines:
            pla             ; restore X & A registers from stack
            tax
            pla
-           rti
+           rti             ; always end DLI with RTI!
 
 But this time, the display list has *two* lines that have the DLI bit set:
 
@@ -616,10 +661,6 @@ time, the second DLI on the 4th text line gets triggered before the first DLI
 has hit its ``RTI`` instruction. ANTIC interrupts the first DLI and starts the
 2nd DLI anyway. This effect is visible in the 5th line of text: the background
 color is bright again.
-
-.. figure:: dli_interrupting_dli.png
-   :align: center
-   :width: 90%
 
 But notice another artifact: the effect on the 5th line of text isn't on its
 first scan line, but its second:
@@ -756,6 +797,17 @@ of that work.
 Advanced DLI #1: Multiple DLIs
 ------------------------------------------------------------
 
+.. figure:: multiple_dli_same_page.png
+   :align: center
+   :width: 90%
+
+.. raw:: html
+
+   <ul>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/multiple_dli_same_page.s">multiple_dli_same_page.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/multiple_dli_same_page.xex">multiple_dli_same_page.xex</a></li>
+   </ul>
+
 One of the problems with having a single DLI vector is: what do you do when you
 want to have more than one DLI?
 
@@ -799,13 +851,20 @@ This is a simplistic example, but keeping the high byte constant inside the
 DLI saves 6 cycles (by obviating the need for ``LDA #>dli2; STA VDLSTL+1``).
 That may be enough for this optimization to be useful.
 
-.. figure:: multiple_dli_same_page.png
-   :align: center
-   :width: 90%
-
 
 Advanced DLI #2: Moving the DLI Up and Down the Screen
 ------------------------------------------------------------
+
+.. figure:: moving_dli.gif
+   :align: center
+   :width: 90%
+
+.. raw:: html
+
+   <ul>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/moving_dli.s">moving_dli.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/moving_dli.xex">moving_dli.xex</a></li>
+   </ul>
 
 The DLI subroutine itself doesn't directly know what scan line caused the
 interrupt because all DLIs are routed through the same vector at ``VDLSTL``.
@@ -839,10 +898,6 @@ The example allows the display list to be set on blank lines at the top of the
 display, and on the JVB instruction at the end of the display list to show that
 modes don't have to output any graphics to use a DLI.
 
-.. figure:: moving_dli.gif
-   :align: center
-   :width: 90%
-
 
 Advanced DLI #3: Multiplexing Players & Collision Detection
 ------------------------------------------------------------------
@@ -850,16 +905,28 @@ Advanced DLI #3: Multiplexing Players & Collision Detection
 Simple Multiplexing
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Simple multiplexing players of is easy, you just set a new value for one of
-the player or missile X position registers. This demo uses the page-alignment
-trick for the second DLI, and changes the position and size of the players at
-each interrupt.
+.. figure:: simple_multiplex_player.png
+   :align: center
+   :width: 90%
 
-This demo splits the screen vertically into 3 horizontal bands, call them A, B
-& C. The way to think of this technique is that the VBI sets the players for
-band A, the ``dli`` routine is the bottom of band A (and the top of band B)
-and therefore sets the players for band B, and the ``dli2`` routine is the
-bottom of band B (and the top of band C) and controls the players for band C.
+.. raw:: html
+
+   <ul>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/simple_multiplex_player.s">simple_multiplex_player.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/simple_multiplex_player.xex">simple_multiplex_player.xex</a></li>
+   </ul>
+
+Simple multiplexing players of is straightforward: just set a new value
+in the appropriate player or missile X position register. This demo uses the
+page-alignment trick for the second DLI, and changes the position and size of
+the players at each interrupt.
+
+This demo splits the screen vertically into 3 horizontal bands, A, B & C, with
+the players extending the full height of the screen and labeled 0 through 3.
+This technique uses the VBI to set the players for band A, the ``dli`` routine
+is the bottom of band A (and the top of band B) and therefore sets the players
+for band B, and the ``dli2`` routine is the bottom of band B (and the top of
+band C) and controls the players for band C.
 
 .. code-block::
 
@@ -927,28 +994,24 @@ bottom of band B (and the top of band C) and controls the players for band C.
            rti             ; always end DLI with RTI!
 
 
-Notice some timing issues below (players are labeled 0 through 3, and each
-band has two rows of mode 6 text with labels):
+In discussing the timing issues that cause errors at the band boundaries, the
+players in band A are positioned by the VBI, and so are in place from well off
+the top of the screen and are correctly positioned at the first scan line.
+Players 0, 1, and 2 are correct at the bottom of the band, but player 3
+extends one scan line too far, into band B.
 
-.. figure:: simple_multiplex_player.png
-   :align: center
-   :width: 90%
-
-The players in band A are positioned by the VBI, and so are in place from well
-off the top of the screen.
-
-Band B shows some problems. When the first DLI hits on the last scan line of
-the 6th line of text, the background color is changed at the ``WSYNC`` and
-ANTIC moves on to start drawing the first scan line of the 7th line of text
-(which is the first line of text in band B.) Players 0, 1, and 2 are
-positioned correctly, which means their horizontal positions were set before
-ANTIC reached that portion of the scan line. The 3rd player remains in the
-same position as it was in band A, meaning that its horizontal position wasn't
-set in time. ANTIC had stolen enough cycles setting up the mode 4 font that
-the 6502 didn't get a chance to process the ``sta HPOS3`` before ANTIC had to
-draw that portion of the scan line.
-
-Notice also that none of the sizes are set until the 2nd scan line of band B.
+The top of band B shows both position and size errors. When the first DLI hits
+on the last scan line of the 6th line of text, the background color is changed
+at the ``WSYNC`` and ANTIC moves on to start drawing the first scan line of
+the 7th line of text (which is the first line of text in band B.) Players 0,
+1, and 2 are positioned correctly, which means their horizontal positions were
+set before ANTIC reached that portion of the scan line. The 3rd player remains
+in the same position as it was in band A, meaning that its horizontal position
+wasn't set in time. ANTIC had stolen enough cycles setting up the mode 4 font
+that the 6502 didn't get a chance to process the ``sta HPOS3`` before ANTIC
+had to draw that portion of the scan line. Since the code sets sizes after the
+horizontal positions, none of the sizes are set until the 2nd scan line of
+band B.
 
 The transition to band C with the ``dli2`` routine produces similar results,
 there just isn't enough time with the ``WSYNC`` used for the color change
@@ -957,7 +1020,7 @@ changes in the first scan line of the band. Players 0, 1, and 2 are moved,
 player 3 is not, and all 4 players don't get the correct size until the 2nd
 scan line of the band.
 
-It's possible to imagine a scenerio where a scan line of a player is not
+It's possible to imagine a scenario where a scan line of a player is not
 visible at all. For example, if player 3 above had been positioned very far to
 the right and ``HPOSP3`` was changed to move player 3 to the far left side, it
 could be possible that ANTIC has already drawn the left side of the screen but
@@ -983,15 +1046,22 @@ line as described above.
 More Advanced Multiplexing 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. figure:: multiplex_player_movement.png
+   :align: center
+   :width: 90%
+
+.. raw:: html
+
+   <ul>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/multiplex_player_movement.s">multiplex_player_movement.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/multiplex_player_movement.xex">multiplex_player_movement.xex</a></li>
+   </ul>
+
 Increasing the number of bands that have player movement will require a
 different approach. One method would be to use a single DLI that uses an index
 value to determine which band it is operating within. This index value can be
 used as an offset into arrays that hold the sprite X position, size, color,
 etc.
-
-.. figure:: multiplex_player_movement.png
-   :align: center
-   :width: 90%
 
 There are a lot of independently moving objects in this demo: 12 bands, each
 with 4 players. There are very obvious timing issues on the first scan line
@@ -1087,7 +1157,7 @@ The colors are not the same as band L, however, because of the use of the
 shadow registers to set the initial color in the ``init_pmg`` subroutine.
 
 
-Fairly Advanced Multiplexing
+Real-World Advanced Multiplexing
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 

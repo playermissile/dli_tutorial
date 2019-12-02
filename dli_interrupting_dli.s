@@ -43,7 +43,7 @@ dli     pha             ; save A & X registers to stack
         pla             ; restore X & A registers from stack
         tax
         pla
-        rti
+        rti             ; always end DLI with RTI!
 
 fillscreen
         ldy #0
