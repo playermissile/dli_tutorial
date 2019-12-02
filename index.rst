@@ -596,6 +596,14 @@ mode 4.
 Timing Limitations of DLIs
 -----------------------------------
 
+If DLIs run long enough, they can be:
+
+ * interrupted by the vertical blank
+ * interrupted by other DLIs
+
+DLI Interrupting Another DLI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. figure:: dli_interrupting_dli.png
    :align: center
    :width: 90%
@@ -607,10 +615,12 @@ Timing Limitations of DLIs
    <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/dli_interrupting_dli.xex">dli_interrupting_dli.xex</a></li>
    </ul>
 
-The timing limitations are:
-
- * a DLI cannot extend into the vertical blank or Bad Things Happen(tm)
- * DLIs, if they run long enough, can themselves be interrupted by other DLIs
+When a DLI is interrupted, its state is saved just as if a normal program was
+interrupted. The interrupting code is then executed, and upon its completion,
+the control returns to the DLI at the point where it left off. But at this
+point, due to the interrupting event, the restored DLI will be resumed some
+number of scan lines below where it was interrupted, likely resulting in
+unplanned behavior.
 
 Here's a similar DLI to the above, except it changes the luminance value
 instead of the color value to make the effect easier to see. It starts with a
@@ -759,6 +769,29 @@ correct background color for the second DLI.
 I think the takeaway from this section is: don't let your DLI get interrupted
 by anything else, or it is likely that you will encounter emulation
 differences.
+
+VBI Interrupting A DLI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For completeness, here is an example of the vertical blank interrupting a DLI.
+
+.. figure:: vbi_interrupting_dli.png
+   :align: center
+   :width: 90%
+
+.. raw:: html
+
+   <ul>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/vbi_interrupting_dli.s">vbi_interrupting_dli.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/vbi_interrupting_dli.xex">vbi_interrupting_dli.xex</a></li>
+   </ul>
+
+The DLI is started at the bottom of the screen, gets interrupted by the VBI,
+and picks up again when VBI ends. Even though the electron beam is turned off,
+``WSYNC`` is still called and performs its delay function when the scan line
+is off screen. The resulting image resumes its color cycling background on the
+top of the screen, stopping after 128 scan lines even though only a fraction
+of those are actually visible on screen.
 
 
 DLIs in a Nutshell
