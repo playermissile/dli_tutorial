@@ -28,6 +28,20 @@ init_static_screen_mode4
         rts
 
 ;
+; Create display list of 40x24 mode 4 lines with a single DLI
+;
+init_dli_screen_mode4
+        ; load display list & fill with test data
+        lda #<dlist_static_mode4
+        sta SDLSTL
+        lda #>dlist_static_mode4
+        sta SDLSTL+1
+        lda #$84        ; turn on DLI bit for 2nd mode 4 line
+        sta dlist_static_mode4 + 6
+        jsr fillscreen_static
+        rts
+
+;
 ; Create display list of 40x24 mode 4 lines in 6 bands labeled A - F
 ;
 init_static_screen_mode4_6_bands
