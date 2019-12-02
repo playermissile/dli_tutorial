@@ -507,8 +507,8 @@ of the previous example.
 .. raw:: html
 
    <ul>
-   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/rainbow_wsync.s">rainbow_wsync.s</a></li>
-   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/rainbow_wsync.xex">rainbow_wsync.xex</a></li>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/first_dli_with_wsync.s">first_dli_with_wsync.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/first_dli_with_wsync.xex">first_dli_with_wsync.xex</a></li>
    </ul>
 
 The flickering is avoided by saving some value (any value, the bit pattern is
