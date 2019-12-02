@@ -18,7 +18,9 @@ knowledge of 6502 assembly language, so this tutorial is going to assume that
 you are comfortable with that. All the examples here are assembled using the
 MAC/65-compatible assembler `ATasm
 <https://atari.miribilist.com/atasm/index.html>`_ (and more specifically to
-this tutorial, the version built-in to Omnivore).
+this tutorial, the version built-in to `Omnivore <https://github.com/robmcmullen/omnivore>`_).
+
+.. note:: All source code and XEX files are available in the `dli_tutorial source code repository <https://github.com/playermissile/dli_tutorial>`_ on github.
 
 Before diving into DLIs, it is helpful to understand that they are very
 accurately named: Display List Interrupts literally interrupt the display list
@@ -445,6 +447,13 @@ correct values for the top of the screen.
 
 A Simple Example
 ~~~~~~~~~~~~~~~~~~~~~
+
+.. raw:: html
+
+   <ul>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/first_dli.s">first_dli.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/first_dli.xex">first_dli.xex</a></li>
+   </ul>
 
 A common use of display lists is to change colors part of the way down the
 screen. This first display list interrupt will change the color of the
@@ -971,12 +980,124 @@ make sure a player isn't split across a band boundary or even missing a scan
 line as described above.
 
 
-Advanced Multiplexing 
+More Advanced Multiplexing 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-But what if you want to have *a lot* of reuse of players and be able to use
-the collision registers to see what has happened in each region?
+Increasing the number of bands that have player movement will require a
+different approach. One method would be to use a single DLI that uses an index
+value to determine which band it is operating within. This index value can be
+used as an offset into arrays that hold the sprite X position, size, color,
+etc.
 
+.. figure:: multiplex_player_movement.png
+   :align: center
+   :width: 90%
+
+There are a lot of independently moving objects in this demo: 12 bands, each
+with 4 players. There are very obvious timing issues on the first scan line
+after the DLI as sometimes the hardware registers for a player hasn't been
+updated fully until the second scan line.
+
+.. code-block::
+
+   ; same DLI routine is used for each band, the band_dli_index is used to set
+   ; player information for the appropriate band
+   dli_band
+           pha             ; using A & X
+           txa
+           pha
+           inc band_dli_index ; increment band index, VBI initialized to $ff,
+           ldx band_dli_index ;   so will become 0 for band A
+   
+           ; control band X positions of players
+           lda bandp0_x,x  ; x position of player 0 in this band
+           sta HPOSP0
+           lda bandp0_color,x ; color of player 0 for this band
+           sta COLPM0
+           lda bandp0_size,x ; size of player 0 for this band
+           sta SIZEP0
+   
+           lda bandp1_x,x  ; as above, but for players 1 - 3
+           sta HPOSP1
+           lda bandp1_color,x
+           sta COLPM1
+           lda bandp1_size,x
+           sta SIZEP1
+   
+           lda bandp2_x,x
+           sta HPOSP2
+           lda bandp2_color,x
+           sta COLPM2
+           lda bandp2_size,x
+           sta SIZEP2
+   
+           lda bandp3_x,x
+           sta HPOSP3
+           lda bandp3_color,x
+           sta COLPM3
+           lda bandp3_size,x
+           sta SIZEP3
+   
+   ?done   pla             ; restore A & X
+           tax
+           pla
+           rti             ; always end DLI with RTI!
+
+The addreses ``bandpN_x``, ``bandpN_color``, and ``bandpN_size`` (where N is
+the player number) are declared as lists with the number of entries equal to
+the number of bands. ``band_dli_index`` is incremented each time the DLI
+starts, and uses that index into the lists so it places the players in the
+correct location for that band.
+
+Notice that is all the DLI does, it does not calculate movement or perform any
+player logic, it simply puts players on the screen in the appropriate place for
+that band. All the calculation is done in the vertical blank:
+
+.. code-block::
+
+   ; calculate new positions of players in all bands
+   vbi     ldx #0
+   ?move   lda bandp0_x,x  ; update X coordinate
+           clc             ;   by adding velocity.
+           adc bandp0_dx,x ;   Note that velocity of $ff
+           sta bandp0_x,x  ;   is same as -1
+           cmp #$30        ; check left edge
+           bcs ?right      ; if >=, it is still in playfield
+           lda #1          ; nope, <, so make velocity positive
+           sta bandp0_dx,x
+           bne ?cont
+   ?right  cmp #$c0        ; check right edge
+           bcc ?cont       ; if <, it is still in playfield
+           lda #$ff        ; nope, >=, so make velocity negative
+           sta bandp0_dx,x
+   ?cont   inx             ; next player
+           cpx #num_dli_bands * 4 ; loop through 12 bands * 4 players each
+           bcc ?move
+   
+           lda #$ff        ; initialize band index to get ready for band A
+           sta band_dli_index
+           jmp XITVBV      ; always exit deferred VBI with jump here
+
+Unlike the simple multiplexing demo in the previous section, this VBI does not
+set any positions of players. Instead, this demo sets the DLI bit on the last
+group of 8 blank lines at the beginning of the display list, before any mode 4
+lines. This initial DLI will set the players for band A, and as you can see in
+the demo the players above band A use the same X position and size as band L.
+The colors are not the same as band L, however, because of the use of the
+shadow registers to set the initial color in the ``init_pmg`` subroutine.
+
+
+Fairly Advanced Multiplexing
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Advanced Multiplexing With Collision Detection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If it is important to tell in which band a has collided occurred, more
+management of the data structures will be necessary. (If it is not important,
+you can just check the collision registers in the vertical blank, which will
+report if the user has collided with anything regardless of band.)
 
 
 Advanced DLI #4: Multiple Scrolling Regions
