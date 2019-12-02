@@ -1079,6 +1079,10 @@ line as described above.
 More Advanced Multiplexing 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Increasing the number of bands and adding independent player movement within
+each band requires some data structures and a DLI to control placement in each
+band.
+
 .. figure:: multiplex_player_movement.png
    :align: center
    :width: 90%
@@ -1090,16 +1094,14 @@ More Advanced Multiplexing
    <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/multiplex_player_movement.xex">multiplex_player_movement.xex</a></li>
    </ul>
 
-Increasing the number of bands that have player movement will require a
-different approach. One method would be to use a single DLI that uses an index
-value to determine which band it is operating within. This index value can be
-used as an offset into arrays that hold the sprite X position, size, color,
-etc.
+The approach used in this example is to use a single DLI that uses an index
+value to determine which band it is operating within. This index value is used
+as an offset into arrays that hold the sprite X position, size, color, etc.
 
 There are a lot of independently moving objects in this demo: 12 bands, each
-with 4 players. There are very obvious timing issues on the first scan line
-after the DLI as sometimes the hardware registers for a player hasn't been
-updated fully until the second scan line.
+with 4 players. There are very obvious timing issues in most bands on the
+first scan line after the DLI as sometimes the hardware registers for a player
+hasn't been updated fully until the second scan line.
 
 .. code-block::
 
@@ -1152,7 +1154,7 @@ the number of bands. ``band_dli_index`` is incremented each time the DLI
 starts, and uses that index into the lists so it places the players in the
 correct location for that band.
 
-Notice that is all the DLI does, it does not calculate movement or perform any
+Notice that is *all* the DLI does. It does not calculate movement or perform any
 player logic, it simply puts players on the screen in the appropriate place for
 that band. All the calculation is done in the vertical blank:
 
