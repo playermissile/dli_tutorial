@@ -593,13 +593,12 @@ lines. So 32 scan lines means that it covers 4 display list entries of ANTIC
 mode 4.
 
 
-Timing Limitations of DLIs
------------------------------------
+A Crash Course on Display List Interrupts Getting Interrupted
+-----------------------------------------------------------------
 
-If DLIs run long enough, they can be:
-
- * interrupted by the vertical blank
- * interrupted by other DLIs
+ * DLIs can be interrupted by other DLIs
+ * DLIs can be interrupted by the vertical blank
+ * a DLI on a JVB instruction will cause interrupts on every scan line until the vertical blank
 
 DLI Interrupting Another DLI
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -794,6 +793,25 @@ top of the screen, stopping after 128 scan lines even though only a fraction
 of those are actually visible on screen.
 
 
+DLI on the JVB Instruction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A DLI on the JVB instruction at the end of the display list is possible, but
+has an interesting property: it triggers DLIs on every scan line until the
+vertical blank.
+
+If your DLI is not short enough, it will keep getting interrupted by the DLI
+on triggered by the next scan line, stacking up interrupts until mercifully
+the triggering process is stopped by the vertical blank.
+
+After the vertical blank routine exits, the stacked-up DLI calls will have to
+unwind themselves so the most recently interrupted DLI will resume and execute
+code until its ``RTI``. This will pop data off the stack and return control to
+the interrupted DLI next in line on the stack, and so-forth until all the
+interrupted DLIs have issued their ``RTI`` instructions.
+
+
+
 DLIs in a Nutshell
 -----------------------
 
@@ -928,8 +946,8 @@ using it to create the display:
            rts
 
 The example allows the display list to be set on blank lines at the top of the
-display, and on the JVB instruction at the end of the display list to show that
-modes don't have to output any graphics to use a DLI.
+display, and on the last mode 4 line in the display list which displays the
+background below the last mode 4 line on the screen.
 
 
 Advanced DLI #3: Multiplexing Players & Collision Detection
