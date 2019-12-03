@@ -37,7 +37,7 @@ init_dli_screen_mode4
         lda #>dlist_static_mode4
         sta SDLSTL+1
         lda #$84        ; turn on DLI bit for 2nd mode 4 line
-        sta dlist_static_mode4 + 6
+        sta dlist_static_mode4_2nd_line
         jsr fillscreen_static
         rts
 
@@ -241,10 +241,32 @@ dlist_static_bands
 
 dlist_static_mode4
         .byte $70,$70,$70
+dlist_static_mode4_1st_line
         .byte $44,$00,$80
-        .byte 4,4,4,4,4,4,4,4
-        .byte 4,4,4,4,4,4,4,4
-        .byte 4,4,4,4,4,4,4
+dlist_static_mode4_2nd_line
+        .byte 4,4
+dlist_static_mode4_4th_line
+        .byte 4,4
+dlist_static_mode4_6th_line
+        .byte 4,4
+dlist_static_mode4_8th_line
+        .byte 4,4
+dlist_static_mode4_10th_line
+        .byte 4,4
+dlist_static_mode4_12th_line
+        .byte 4,4
+dlist_static_mode4_14th_line
+        .byte 4,4
+dlist_static_mode4_16th_line
+        .byte 4,4
+dlist_static_mode4_18th_line
+        .byte 4,4
+dlist_static_mode4_20th_line
+        .byte 4,4
+dlist_static_mode4_22nd_line
+        .byte 4,4
+dlist_static_mode4_24th_line
+        .byte 4
         .byte $41,<dlist_static_mode4,>dlist_static_mode4
 
 ;

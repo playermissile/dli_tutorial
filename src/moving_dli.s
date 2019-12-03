@@ -30,6 +30,7 @@ init
         lda #0
         sta last_dli_line
         jsr move_dli_line
+
         jmp forever
 
 

@@ -6,7 +6,12 @@ temp_color = $80
 
 init
         ; load display list & fill with test data
-        jsr init_dli_screen_mode4
+        jsr init_static_screen_mode4
+
+        ; set DLI on 2nd and 4th mode 4 line
+        lda #$84
+        sta dlist_static_mode4_2nd_line
+        sta dlist_static_mode4_4th_line
 
         ; load display list interrupt address
         ldx #>dli
@@ -22,11 +27,11 @@ dli     pha             ; save A & X registers to stack
         txa
         pha
         ldx #16         ; make 16 color changes
-        lda #$a         ; initial color
+        lda #$5f        ; initial bright pink color
         sta WSYNC       ; first WSYNC gets us to start of scan line we want
 ?loop   sta COLBK       ; change background color
-        clc
-        adc #$10        ; change color value, luminance remains the same
+        sec
+        sbc #1          ; make dimmer by decrementing luminance value
         dex             ; update iteration count
         sta WSYNC       ; make it the color change last ...
         sta WSYNC       ;   for two scan lines

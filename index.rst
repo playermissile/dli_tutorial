@@ -535,7 +535,7 @@ artifacts appearing on screen.
    Altirra Hardware Reference Manual for more information.
 
 
-DLIs Don't Have to be Short
+A DLI Can Affect Many Scan Lines
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. figure:: rainbow_wsync.png
@@ -552,7 +552,7 @@ DLIs Don't Have to be Short
 DLIs can really be thought of as a way for your program to be told when a
 certain display list instruction is reached. Apart from the setup and teardown of
 the DLI subroutine itself and some timing limitations discussed in the next
-section, arbitrary code can be executed in a DLI.
+section, arbitrary amounts of code can be executed in a DLI.
 
 .. note::
 

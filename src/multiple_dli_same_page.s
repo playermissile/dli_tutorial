@@ -20,6 +20,7 @@ init
         ldx #>vbi
         ldy #<vbi
         jsr init_vbi
+
         jmp forever
 
 .include "util.s"
