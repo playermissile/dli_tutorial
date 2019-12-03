@@ -280,8 +280,8 @@ Here is a display list that contains different text modes mixed in a single scre
 .. raw:: html
 
    <ul>
-   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/sample_display_list.s">sample_display_list.s</a></li>
-   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/sample_display_list.xex">sample_display_list.xex</a></li>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/src/sample_display_list.s">sample_display_list.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/xex/sample_display_list.xex">sample_display_list.xex</a></li>
    </ul>
 
 .. code-block::
@@ -464,8 +464,8 @@ screen.
 .. raw:: html
 
    <ul>
-   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/first_dli.s">first_dli.s</a></li>
-   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/first_dli.xex">first_dli.xex</a></li>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/src/first_dli.s">first_dli.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/xex/first_dli.xex">first_dli.xex</a></li>
    </ul>
 
 Here is our first display list interrupt:
@@ -507,8 +507,8 @@ of the previous example.
 .. raw:: html
 
    <ul>
-   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/first_dli_with_wsync.s">first_dli_with_wsync.s</a></li>
-   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/first_dli_with_wsync.xex">first_dli_with_wsync.xex</a></li>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/src/first_dli_with_wsync.s">first_dli_with_wsync.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/xex/first_dli_with_wsync.xex">first_dli_with_wsync.xex</a></li>
    </ul>
 
 The flickering is avoided by saving some value (any value, the bit pattern is
@@ -545,8 +545,8 @@ A DLI Can Affect Many Scan Lines
 .. raw:: html
 
    <ul>
-   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/rainbow_wsync.s">rainbow_wsync.s</a></li>
-   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/rainbow_wsync.xex">rainbow_wsync.xex</a></li>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/src/rainbow_wsync.s">rainbow_wsync.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/xex/rainbow_wsync.xex">rainbow_wsync.xex</a></li>
    </ul>
 
 DLIs can really be thought of as a way for your program to be told when a
@@ -610,8 +610,8 @@ DLI Interrupting Another DLI
 .. raw:: html
 
    <ul>
-   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/dli_interrupting_dli.s">dli_interrupting_dli.s</a></li>
-   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/dli_interrupting_dli.xex">dli_interrupting_dli.xex</a></li>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/src/dli_interrupting_dli.s">dli_interrupting_dli.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/xex/dli_interrupting_dli.xex">dli_interrupting_dli.xex</a></li>
    </ul>
 
 When a DLI is interrupted, its state is saved just as if a normal program was
@@ -781,8 +781,8 @@ For completeness, here is an example of the vertical blank interrupting a DLI.
 .. raw:: html
 
    <ul>
-   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/vbi_interrupting_dli.s">vbi_interrupting_dli.s</a></li>
-   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/vbi_interrupting_dli.xex">vbi_interrupting_dli.xex</a></li>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/src/vbi_interrupting_dli.s">vbi_interrupting_dli.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/xex/vbi_interrupting_dli.xex">vbi_interrupting_dli.xex</a></li>
    </ul>
 
 The DLI is started at the bottom of the screen, gets interrupted by the VBI,
@@ -866,8 +866,8 @@ Advanced DLI #1: Multiple DLIs
 .. raw:: html
 
    <ul>
-   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/multiple_dli_same_page.s">multiple_dli_same_page.s</a></li>
-   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/multiple_dli_same_page.xex">multiple_dli_same_page.xex</a></li>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/src/multiple_dli_same_page.s">multiple_dli_same_page.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/xex/multiple_dli_same_page.xex">multiple_dli_same_page.xex</a></li>
    </ul>
 
 One of the problems with having a single DLI vector is: what do you do when you
@@ -925,8 +925,8 @@ Advanced DLI #2: Moving the DLI Up and Down the Screen
 .. raw:: html
 
    <ul>
-   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/moving_dli.s">moving_dli.s</a></li>
-   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/moving_dli.xex">moving_dli.xex</a></li>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/src/moving_dli.s">moving_dli.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/xex/moving_dli.xex">moving_dli.xex</a></li>
    </ul>
 
 The DLI subroutine itself doesn't directly know what scan line caused the
@@ -962,11 +962,16 @@ display, and on the last mode 4 line in the display list which displays the
 background below the last mode 4 line on the screen.
 
 
-Advanced DLI #3: Multiplexing Players & Collision Detection
-------------------------------------------------------------------
+Advanced DLI #3: Multiplexing Players
+----------------------------------------------------
 
 Simple Multiplexing
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Reusing players (multiplexing) vertically is straightforward, as long as the
+vertical bands stay in constant locations and the reused players don't cross
+bands. Reusing players horizontally is possible in limited cases, but this
+technique is outside the scope of this tutorial, at least for now.
 
 .. figure:: simple_multiplex_player.png
    :align: center
@@ -975,18 +980,21 @@ Simple Multiplexing
 .. raw:: html
 
    <ul>
-   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/simple_multiplex_player.s">simple_multiplex_player.s</a></li>
-   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/simple_multiplex_player.xex">simple_multiplex_player.xex</a></li>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/src/simple_multiplex_player.s">simple_multiplex_player.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/xex/simple_multiplex_player.xex">simple_multiplex_player.xex</a></li>
    </ul>
 
-Simple multiplexing players of is straightforward: just set a new value
+Using the hardware ``HPOSPn`` or ``HPOSMn`` registers, the DLI will
+immediately change where ANTIC will draw the player or missile. The next time
+ANTIC draws the player on a scan line, it will use this new position.
+
 in the appropriate player or missile X position register. This demo uses the
 page-alignment trick for the second DLI, and changes the position and size of
 the players at each interrupt.
 
 This demo splits the screen vertically into 3 horizontal bands, A, B & C, with
 the players extending the full height of the screen and labeled 0 through 3.
-This technique uses the VBI to set the players for band A, the ``dli`` routine
+This example uses the VBI to set the players for band A, the ``dli`` routine
 is the bottom of band A (and the top of band B) and therefore sets the players
 for band B, and the ``dli2`` routine is the bottom of band B (and the top of
 band C) and controls the players for band C.
@@ -1091,6 +1099,10 @@ hadn't yet reached the right side where player 3 had been positioned. Because
 ``HPOSP3`` is now showing that player 3 is on the left side of the screen,
 ANTIC would not draw it at its old location on the right side of the screen.
 
+It's also possible, with careful timing, to reuse a player on a single line.
+However, purposeful use of this would difficult given all the different
+horizontal locations of ANTIC's cycle stealing.
+
 As in the `Timing Limitations of DLIs`_ section, mode 4 was chosen (in all of
 its cycle-stealing glory) for these examples to get an idea of the worst-case
 scenerio. Taking out the ``WSYNC`` and the color change did allow enough time
@@ -1102,8 +1114,8 @@ that both the positions and sizes were changed without visible artifacts:
 
 but this is very simple code and the more real-world example in the next
 section will show that a buffer zone of several scan lines is necessary to
-make sure a player isn't split across a band boundary or even missing a scan
-line as described above.
+make sure a player isn't split across a band boundary or, as described above,
+even duplicating a line of the player or missing a scan line.
 
 
 More Advanced Multiplexing 
@@ -1120,8 +1132,8 @@ band.
 .. raw:: html
 
    <ul>
-   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/multiplex_player_movement.s">multiplex_player_movement.s</a></li>
-   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/multiplex_player_movement.xex">multiplex_player_movement.xex</a></li>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/src/multiplex_player_movement.s">multiplex_player_movement.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/xex/multiplex_player_movement.xex">multiplex_player_movement.xex</a></li>
    </ul>
 
 The approach used in this example is to use a single DLI that uses an index
@@ -1225,6 +1237,16 @@ shadow registers to set the initial color in the ``init_pmg`` subroutine.
 Real-World Advanced Multiplexing
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Vertical movement within bands requires the moving memory around the
+player/missile graphics area (pointed to by ``PMBASE``) just as normal. The
+limitations are:
+
+ * players must stay within their assigned band, otherwise
+they will get split across bands when the DLI occurs.
+ * players should stay a few scan lines below the top of the band boundary to prevent splitting
+ * when moving a player in a band, only erase data from that band to prevent affecting the multiplexed players in other bands
+
+<example goes here>
 
 Advanced Multiplexing With Collision Detection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1234,6 +1256,8 @@ management of the data structures will be necessary. (If it is not important,
 you can just check the collision registers in the vertical blank, which will
 report if the user has collided with anything regardless of band.)
 
+<example goes here>
+
 
 Advanced DLI #4: Multiple Scrolling Regions
 ------------------------------------------------------------------
@@ -1242,4 +1266,6 @@ Splitting the screen vertically allows 2 (or more!) independent scrolling
 regions by changing the VSCROL and HSCROL values in the DLI so that the
 subsequent lines use different values.
 
+
+<example goes here>
 
