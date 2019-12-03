@@ -802,13 +802,23 @@ vertical blank.
 
 If your DLI is not short enough, it will keep getting interrupted by the DLI
 on triggered by the next scan line, stacking up interrupts until mercifully
-the triggering process is stopped by the vertical blank.
+the triggering process is stopped by the vertical blank after 248 scan lines
+have been generated.
+
+.. note:: As each new frame is generated in an emulator, it will enumerate the scan lines starting from zero. There are 248 scan lines before the vertical blank, which will be displayed as scan lines 0 - 247. The scan line labeled 248 will be the first scan line of the vertical blank.
 
 After the vertical blank routine exits, the stacked-up DLI calls will have to
-unwind themselves so the most recently interrupted DLI will resume and execute
-code until its ``RTI``. This will pop data off the stack and return control to
-the interrupted DLI next in line on the stack, and so-forth until all the
+unwind themselves so the most recently interrupted DLI (from scan line 247,
+the scan line just before the vertical blank) will resume and execute code
+until its ``RTI``. This will pop data off the stack and return control to the
+DLI that was interrupted on scan line 246, and so-forth until all the
 interrupted DLIs have issued their ``RTI`` instructions.
+
+On a standard length display list that generates 24 blank lines followed by
+192 output lines, the JVB instruction will be on scan line 224. Since the JVB
+technically generates a single blank line in the display list, the DLI will
+also be triggered on scan line 224. This case would produce 24 DLIs before the
+vertical blank.
 
 
 
