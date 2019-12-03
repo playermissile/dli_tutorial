@@ -42,6 +42,22 @@ init_dli_screen_mode4
         rts
 
 ;
+; Create display list of 40x24 mode 4 lines in 3 bands labeled A - C. Only 2
+; DLIs are used in this case as the VBI is used to set players for the top
+;
+init_static_screen_mode4_3_bands
+        ; load display list & fill with test data
+        lda #<dlist_static_mode4
+        sta SDLSTL
+        lda #>dlist_static_mode4
+        sta SDLSTL+1
+        jsr fillscreen_static_3_bands
+        lda #$84        ; turn on DLI bit on mode 4
+        sta dlist_static_mode4_8th_line
+        sta dlist_static_mode4_16th_line
+        rts
+
+;
 ; Create display list of 40x24 mode 4 lines in 6 bands labeled A - F
 ;
 init_static_screen_mode4_6_bands
@@ -146,6 +162,44 @@ fillscreen_bands
         cpy #40
         bcc ?loop
         rts
+
+;
+; fill 24 lines of 40 bytes with test pattern for 3 bands
+;
+fillscreen_static_3_bands
+        ldy #0
+?loop   lda #$41
+        sta $8000,y
+        sta $8028,y
+        sta $8050,y
+        sta $8078,y
+        sta $80a0,y
+        sta $80c8,y
+        sta $80f0,y
+        sta $8118,y
+        lda #$a2
+        sta $8140,y
+        sta $8168,y
+        sta $8190,y
+        sta $81b8,y
+        sta $81e0,y
+        sta $8208,y
+        sta $8230,y
+        sta $8258,y
+        lda #$43
+        sta $8280,y
+        sta $82a8,y
+        sta $82d0,y
+        sta $82f8,y
+        sta $8320,y
+        sta $8348,y
+        sta $8370,y
+        sta $8398,y
+        iny
+        cpy #40
+        bcc ?loop
+        rts
+
 ;
 ; fill 24 lines of 40 bytes with test pattern for 6 bands
 ;

@@ -8,19 +8,31 @@ band_index = $80
 
 
 init
-        jsr init_static_screen_bands
-        lda dlist_static_bands + 10
-        ora #$80
-        sta dlist_static_bands + 10
-        lda dlist_static_bands + 20
-        ora #$80
-        sta dlist_static_bands + 20
+        ; load ANTIC 4 font
+        jsr init_font
+
+        ; load display list & fill with test data
+        jsr init_static_screen_mode4_3_bands
+
+        ; load display list interrupt address
+        ldx #>dli
+        ldy #<dli
         jsr init_dli
+
+        ; load deferred vertical blank address
+        ldx #>vbi
+        ldy #<vbi
         jsr init_vbi
+
         jsr init_pmg
+
         jmp forever
 
-.include "common.s"
+.include "util.s"
+.include "util_dli.s"
+.include "util_vbi.s"
+.include "util_pmg.s"
+.include "util_font.s"
 
 vbi     lda #<dli       ; set DLI pointer to first in chain
         sta VDSLST
@@ -84,3 +96,5 @@ dli2    pha             ; only using A register, so save it to the stack
         sta SIZEP3
         pla             ; restore A register from stack
         rti             ; always end DLI with RTI!
+
+.include "font_data_antic4.s"

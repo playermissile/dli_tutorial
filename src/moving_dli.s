@@ -33,7 +33,6 @@ init
 
         jmp forever
 
-
 .include "util.s"
 .include "util_dli.s"
 .include "util_vbi.s"

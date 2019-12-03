@@ -1,6 +1,6 @@
 DEST = xex/
 SRC = src/
-BINS = xex/sample_display_list.xex xex/first_dli.xex xex/first_dli_with_wsync.xex xex/rainbow_wsync.xex xex/dli_interrupting_dli.xex xex/vbi_interrupting_dli.xex xex/multiple_dli_same_page.xex xex/moving_dli.xex xex/multiplex_player_movement.xex
+BINS = xex/sample_display_list.xex xex/first_dli.xex xex/first_dli_with_wsync.xex xex/rainbow_wsync.xex xex/dli_interrupting_dli.xex xex/vbi_interrupting_dli.xex xex/multiple_dli_same_page.xex xex/simple_multiplex_player.xex xex/moving_dli.xex xex/multiplex_player_movement.xex
 
 # %.xex: %.s
 # 	atasm -mae -Isrc -o$@ -L$<.var -g$<.lst $<
@@ -27,16 +27,16 @@ xex/dli_interrupting_dli.xex: src/dli_interrupting_dli.s src/util.s src/util_dli
 xex/vbi_interrupting_dli.xex: src/vbi_interrupting_dli.s src/util.s src/util_dli.s src/util_vbi.s
 	atasm -mae -Isrc -o$@ -L$<.var -g$<.lst $<
 
-
-
-
 xex/multiple_dli_same_page.xex: src/multiple_dli_same_page.s src/util.s src/util_dli.s src/util_vbi.s
 	atasm -mae -Isrc -o$@ -L$<.var -g$<.lst $<
 
 xex/moving_dli.xex: src/moving_dli.s src/util.s src/util_dli.s src/util_vbi.s
 	atasm -mae -Isrc -o$@ -L$<.var -g$<.lst $<
 
-xex/multiplex_player_movement.xex: src/multiplex_player_movement.s
+xex/simple_multiplex_player.xex: src/simple_multiplex_player.s src/util.s src/util_dli.s src/util_vbi.s src/util_pmg.s src/util_font.s src/font_data_antic4.s
+	atasm -mae -Isrc -o$@ -L$<.var -g$<.lst $<
+
+xex/multiplex_player_movement.xex: src/multiplex_player_movement.s src/util.s src/util_dli.s src/util_vbi.s src/util_pmg.s src/util_multiplex_pmg.s src/util_font.s src/font_data_antic4.s
 	atasm -mae -Isrc -o$@ -L$<.var -g$<.lst $<
 
 clean:

@@ -24,6 +24,7 @@ init
 .include "util_dli.s"
 .include "util_vbi.s"
 .include "util_pmg.s"
+.include "util_multiplex_pmg.s"
 .include "util_font.s"
 
 ; set up demo: initialize player pos, velocity in bands
