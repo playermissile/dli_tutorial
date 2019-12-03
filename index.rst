@@ -856,7 +856,18 @@ generally be done outside of the DLI and the DLI itself just handles the result
 of that work.
 
 
-Advanced DLI #1: Multiple DLIs
+Advanced DLI Examples
+------------------------
+
+The following examples are available in both source code form and as XEX files
+at the `dli_tutorial source code repository <https://github.com/playermissile/dli_tutorial>`_ on github.
+
+They are coded using MAC/65 assembler syntax, but very few assembler-specific
+features are actually used, so they should be trivially ported to other
+assemblers.
+
+
+#1: Multiple DLIs
 ------------------------------------------------------------
 
 .. figure:: multiple_dli_same_page.png
@@ -915,7 +926,7 @@ DLI saves 6 cycles (by obviating the need for changing the high byte with
 useful.
 
 
-Advanced DLI #2: Moving the DLI Up and Down the Screen
+#2: Moving the DLI Up and Down the Screen
 ------------------------------------------------------------
 
 .. figure:: moving_dli.gif
@@ -962,16 +973,40 @@ display, and on the last mode 4 line in the display list which displays the
 background below the last mode 4 line on the screen.
 
 
-Advanced DLI #3: Multiplexing Players
-----------------------------------------------------
+Interlude: A Player/Missile Graphics Refresher
+--------------------------------------------------
 
-Simple Multiplexing
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Player/Missile graphics are the sprite system provided by the GTIA, and are
+based on strips of data displayed vertically down the screen.
 
-Reusing players (multiplexing) vertically is straightforward, as long as the
-vertical bands stay in constant locations and the reused players don't cross
-bands. Reusing players horizontally is possible in limited cases, but this
-technique is outside the scope of this tutorial, at least for now.
+.. note:: the word *sprite* wasn't in use in this sense when the Atari was designed, but that is exactly what player/missile graphics are: overlays on the playfield graphics that don't disturb the playfield. `Several <https://graphics.fandom.com/wiki/Sprite>`_ `sources <https://en.wikipedia.org/wiki/Sprite_(computer_graphics)>`_ `claim <http://groups.google.com/group/comp.sys.ti/msg/73e2451bcae4d91a>`_ that it was coined by the designers of the Texas Instrument TI 9918 graphics chip.
+
+The GTIA provides 4 players with independent colors (from each other or the
+playfield) and 4 missiles with matching colors, or the 4 missiles can be
+combined into a 5th player with its own color (although this reuses one
+playfield color). The players are 8 bits wide and can be displayed as one,
+two, or four color clocks wide per bit. This corresponds a width on screen of
+8, 16, and 32 color clocks, respectively. Sizes for all players and missiles
+can be set independently.
+
+Each player and missile can be positioned at an arbitrary horizontal location
+by setting a hardware register, but vertical positioning requires copying data
+to particular locations in the memory area set aside for the player/missile
+graphics area. The byte of memory at a location in each players graphics area
+determines the bit pattern for that player at a particular scan line. Missiles
+are two bits wide each, setting data for one missile without affecting the
+others requires bit masking.
+
+The quick summary for our purposes is that horizontal repositioning of players
+is fast, it takes only a single store instruction. Vertical repositioning of
+player image data is slow, it requires copying memory around.
+
+#3: Multiplexing Players Vertically
+----------------------------------------------------------------
+
+Reusing players (multiplexing) vertically is straightforward, meaning that a
+single player can be used to display arbitrary images at different vertical
+locations on the screen, provided that there is no vertical overlap.
 
 .. figure:: simple_multiplex_player.png
    :align: center
@@ -1118,8 +1153,8 @@ make sure a player isn't split across a band boundary or, as described above,
 even duplicating a line of the player or missing a scan line.
 
 
-More Advanced Multiplexing 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#4: Multiplexing With Horizontal Motion
+----------------------------------------------------------
 
 Increasing the number of bands and adding independent player movement within
 each band requires some data structures and a DLI to control placement in each
@@ -1234,32 +1269,45 @@ The colors are not the same as band L, however, because of the use of the
 shadow registers to set the initial color in the ``init_pmg`` subroutine.
 
 
-Real-World Advanced Multiplexing
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#n: Multiplexing with Arbitrary Motion
+-------------------------------------------------------
 
 Vertical movement within bands requires the moving memory around the
-player/missile graphics area (pointed to by ``PMBASE``) just as normal. The
-limitations are:
+player/missile graphics area (pointed to by ``PMBASE``) as in normal usage,
+with the following limitations:
 
- * players must stay within their assigned band, otherwise
-they will get split across bands when the DLI occurs.
- * players should stay a few scan lines below the top of the band boundary to prevent splitting
- * when moving a player in a band, only erase data from that band to prevent affecting the multiplexed players in other bands
-
-<example goes here>
-
-Advanced Multiplexing With Collision Detection
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If it is important to tell in which band a has collided occurred, more
-management of the data structures will be necessary. (If it is not important,
-you can just check the collision registers in the vertical blank, which will
-report if the user has collided with anything regardless of band.)
+ * players must stay within their assigned band, otherwise they will get split across bands when the DLI occurs.
+ * players should avoid the first few scan lines below the top of the band boundary to prevent splitting
+ * when moving a player vertically within a band, only erase data from that band to prevent affecting the multiplexed players in other bands
 
 <example goes here>
 
+#n: Multiplexing With Collision Detection
+---------------------------------------------------------------
 
-Advanced DLI #4: Multiple Scrolling Regions
+If it is important to tell in which band a has collided occurred, the DLI that
+starts a new band will be required to save the collision status registers,
+which will determine if a collision happened in the *previous* band. It will
+then reset the collision registers so the following DLI can check what
+happened in this band.
+
+If the knowledge of the band is not important, you can just check the
+collision registers in the vertical blank, which will report if there have
+been any collisions with anything in any band.
+
+<example goes here>
+
+
+#n: Multiplexing Players Horizontally
+----------------------------------------------------------------
+
+Reusing players on the same scan line is possible, but its usefulness may be
+limited to mostly static cases.
+
+<example goes here>
+
+
+#n: Multiple Scrolling Regions
 ------------------------------------------------------------------
 
 Splitting the screen vertically allows 2 (or more!) independent scrolling
