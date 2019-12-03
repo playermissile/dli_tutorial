@@ -839,8 +839,9 @@ interrupted.
    * restore any registers you save before exiting
    * exit with an ``RTI``
    * use ``WSYNC`` if necessary
-   * be aware of cycles stolen by ANTIC: you could have only 60 cycles per scan line in higher resolution graphics modes, and as few as 10 in text modes
+   * be aware of cycles stolen by ANTIC: you could have only 60 cycles per scan line in higher resolution graphics modes, and as few as 10 (**!**) on the first line of text modes
    * store the address of your routine in ``VDSLST`` before enabling DLIs with ``NMIEN``
+   * guard against the DLI itself being interrupted
 
 Note that nowhere in that list was the requirement that the DLI be short. It
 doesn't have to be, and in fact DLIs that span multiple scan lines are similar
@@ -909,8 +910,9 @@ cycles: put your DLIs in the same page of memory and only change the low byte.
            jmp XITVBV      ; always exit deferred VBI with jump here
 
 This is a simplistic example, but keeping the high byte constant inside the
-DLI saves 6 cycles (by obviating the need for ``LDA #>dli2; STA VDLSTL+1``).
-That may be enough for this optimization to be useful.
+DLI saves 6 cycles (by obviating the need for changing the high byte with
+``LDA #>dli2; STA VDLSTL+1``). That may be enough for this optimization to be
+useful.
 
 
 Advanced DLI #2: Moving the DLI Up and Down the Screen
