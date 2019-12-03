@@ -3,18 +3,28 @@
 .include "hardware.s"
 
 init
+        ; load display list & fill with test data
         jsr init_static_screen_mode4
-        lda dlist_static_mode4 + 10
-        ora #$80
+
+        ; add DLI bit to two lines
+        lda #$84
         sta dlist_static_mode4 + 10
-        lda dlist_static_mode4 + 20
-        ora #$80
         sta dlist_static_mode4 + 20
+
+        ; load display list interrupt address
+        ldx #>dli
+        ldy #<dli
         jsr init_dli
+
+        ; load deferred vertical blank address
+        ldx #>vbi
+        ldy #<vbi
         jsr init_vbi
         jmp forever
 
-.include "common.s"
+.include "util.s"
+.include "util_dli.s"
+.include "util_vbi.s"
 
         *= (* & $ff00) + 256 ; next page boundary
 

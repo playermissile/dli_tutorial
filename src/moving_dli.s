@@ -12,23 +12,17 @@ last_dli_line = $82
 
 init
         ; load display list & fill with test data
-        lda #<dlist
-        sta sdlstl
-        lda #>dlist
-        sta sdlstl+1
-        jsr fillscreen
+        jsr init_static_screen_mode4
 
         ; load display list interrupt address
-        lda #<dli
-        sta VDSLST
-        lda #>dli
-        sta VDSLST+1
+        ldx #>dli
+        ldy #<dli
+        jsr init_dli
 
-        ; load deferred VBI address
-        lda #7
+        ; load deferred vertical blank address
         ldx #>vbi
         ldy #<vbi
-        jsr SETVBV
+        jsr init_vbi
 
         ; start initial DLI in middle
         lda #start_dli_line
@@ -36,13 +30,13 @@ init
         lda #0
         sta last_dli_line
         jsr move_dli_line
-
-        ; activate display list interrupt
-        lda #NMIEN_VBI | NMIEN_DLI
-        sta NMIEN
-
-forever
         jmp forever
+
+
+.include "util.s"
+.include "util_dli.s"
+.include "util_vbi.s"
+
 
 vbi     lda STICK0      ; check stick
         cmp #$f         ; centered => exit
@@ -76,20 +70,21 @@ vbi     lda STICK0      ; check stick
         sta stickctr
 ?done   jmp XITVBV      ; always exit deferred VBI with jump here
 
+
 move_dli_line
         ldx last_dli_line ; get line number on screen of old DLI
         lda dlist_line_lookup,x ; get offset into display list of that line number
         tax
-        lda dlist_first,x ; remove DLI bit
+        lda dlist_static_mode4,x ; remove DLI bit
         and #$7f
-        sta dlist_first,x
+        sta dlist_static_mode4,x
         ldx dli_line    ; get line number on screen of new DLI
         stx last_dli_line ; remember
         lda dlist_line_lookup,x ; get offset into display list of that line number
         tax
-        lda dlist_first,x ; set DLI bit
+        lda dlist_static_mode4,x ; set DLI bit
         ora #$80
-        sta dlist_first,x
+        sta dlist_static_mode4,x
         rts
 
 
@@ -112,52 +107,19 @@ dli     pha             ; save A & X registers to stack
         pla
         rti
 
-fillscreen
-        ldy #0
-        ldx #24
-        lda #$40
-        sta ?loop_smc+2
-?loop   tya
-?loop_smc sta $4000,y
-        iny
-        bne ?loop
-        inc ?loop_smc+2
-        dex
-        bne ?loop
-        rts
-
-dlist ; one page per line, will be used for horizontal scrolling eventually
-        .byte $70
-dlist_first
-        .byte $70,$70
-        .byte $44,$00,$40
-        .byte $44,$00,$41
-        .byte $44,$00,$42
-        .byte $44,$00,$43
-        .byte $44,$00,$44
-        .byte $44,$00,$45
-        .byte $44,$00,$46
-        .byte $44,$00,$47
-        .byte $44,$00,$48
-        .byte $44,$00,$49
-        .byte $44,$00,$4a
-        .byte $44,$00,$4b
-        .byte $44,$00,$4c
-        .byte $44,$00,$4d
-        .byte $44,$00,$4e
-        .byte $44,$00,$4f
-        .byte $44,$00,$50
-        .byte $44,$00,$51
-        .byte $44,$00,$52
-        .byte $44,$00,$53
-        .byte $44,$00,$54
-        .byte $44,$00,$55
-        .byte $44,$00,$56
-dlist_last
-        .byte $44,$00,$57
-        .byte $41,<dlist,>dlist
+;dlist_static_mode4
+;        .byte $70,$70,$70
+;        .byte $44,$00,$80
+;        .byte 4,4,4,4,4,4,4,4
+;        .byte 4,4,4,4,4,4,4,4
+;        .byte 4,4,4,4,4,4,4
+;        .byte $41,<dlist_static_mode4,>dlist_static_mode4
 
 dlist_line_lookup
-        .byte 0, 1, 2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35, 38, 41, 44, 47, 50, 53, 56, 59, 62, 65, 68, 71
+        .byte 1, 2,
+        .byte 3
+        .byte 6, 7, 8, 9, 10, 11, 12, 13
+        .byte 14, 15, 16, 17, 18, 19, 20, 21
+        .byte 22, 23, 24, 25, 26, 27, 28
 dlist_line_lookup_last
 dlist_line_lookup_count = dlist_line_lookup_last - dlist_line_lookup
