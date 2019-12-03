@@ -8,6 +8,8 @@ A Crash Course on Advanced DLIs
 
 .. centered:: **Atari 8-bit Display List Interrupts: An Advanced Tutorial**
 
+**Version: 0.4, updated 3 Dec 2019**
+
 This is a tutorial on advanced Display List Interrupts (DLIs) for the Atari
 8-bit series of computers. In a nutshell, DLIs provide a way to notify your
 program when a particular scan line is reached, allowing you to make changes
@@ -24,7 +26,8 @@ this tutorial, the version built-in to `Omnivore <https://github.com/robmcmullen
 
 Before diving into DLIs, it is helpful to understand that they are very
 accurately named: Display List Interrupts literally interrupt the display list
--- they cause an event that is processed by your program while the ANTIC is drawing the screen. So it is necessary to understand what display lists are
+-- they cause an event that is processed by your program while the ANTIC is
+drawing the screen. So it is necessary to understand what display lists are
 before understanding what it means to interrupt one.
 
 .. seealso::
@@ -60,8 +63,8 @@ a scan line.
 This simplified description is the mental model we will use to describe the
 video drawing process.
 
-How Interlacing Works (approximately) and Why We Ignore It
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+How Interlacing Works (With Some Hand Waving) and Why We Ignore It
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Real TVs are interlaced with 525 scan lines for NTSC and 625 for PAL. Because
 of `reasons <https://en.wikipedia.org/wiki/NTSC#Lines_and_refresh_rate>`_, the
@@ -75,21 +78,29 @@ vertical retrace starts, but this time it positions the electron beam at the
 first missing scan line. Then it draws the next field, again skipping every
 other scan line but this time filling in the scan lines it missed.
 
+
 .. figure:: electron-beam-interlaced.png
    :align: center
 
-Notice that this would mean that e.g. one NTSC frame should draw 262 scan lines
-and the other 263, but apparently TVs can compensate for the missing scan line
-every alternate frame, so the Atari always outputs 262 scan lines. Practically
-speaking, you do not need to care that the screen is interlaced. If the Atari
-is displaying an unchanging screen, it produces the same information in the 262
-scan lines it generates regardless of which field it is drawing.
+This drawing is a simplification, seeming to show that there are 524 scan
+lines. In reality, and there are 525 and each field actually draws 262 **and
+one half** scan lines (and not 262 on one field and 263 on another), but this
+is all very complicated and not necessary for our purposes. However, at the
+risk of further complicating matters, if you think of the two fields combining
+into one frame (the even and odd scan lines "combing" together to create a
+complete image), what we think of as one scan line of the 262 produced by an
+ANTIC display list will actually correspond to two scan lines on a TV, one
+from an even field and one from an odd.
+
+Practically speaking, you do not need to care that the screen is interlaced.
+The Atari draws 262 scan lines every field, regardless if it is an even field
+or an odd field.
 
 .. seealso::
 
    * `All About Video Fields <https://lurkertech.com/lg/fields/>`_
 
-How Color Works and Why Are You Waving Your Hands Like That, Oh Author Person?
+How Color Works and There's More Hand Waving Going On, Isn't There?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 How TVs produce the colors that they display is very complicated and so far
@@ -106,21 +117,26 @@ corresponding to half a color clock, and only artifacting color is available.
 
 .. seealso::
 
-   * `NTSC Demystified <https://sagargv.blogspot.com/2011/04/ntsc-demystified-part-1-b-video-and.html>`_, a very long series of blog posts describing NTSC encoding
+   * `NTSC Demystified <https://sagargv.blogspot.com/2011/04/ntsc-demystified-part-1-b-video-and.html>`_, (*haha*), a very long series of blog posts describing NTSC encoding
    * Obligatory link to the `NTSC article on Wikipedia <https://en.wikipedia.org/wiki/NTSC>`_
    * `Composite artifact colors <https://en.wikipedia.org/wiki/Composite_artifact_colors>`_ article on Wikipedia
 
-How The CPU Frequency Was Chosen and Why Is There More Hand Waving Going On Here?
+How The CPU Frequency Was Chosen and Why Is There Even More Hand Waving Going On, Oh Author Person?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For NTSC machines, each frame draws 262 scan lines with 228 color clocks per
 scan line, the operating frequency of the 6502 was chosen such that it takes
 exactly 114 machine cycles per scan line, producing 29868 machine cycles per
 frame. With a 59.94Hz vertical refresh rate this should result in a processor
-speed of 1.790287MHz but the Altirra Hardware Reference Manual shows that
-there are some subtleties to this calculation. It shows the processor speed is
-actually 1.790772MHz, but still uses 29868 cycles per frame, so the TV refresh
-rate is not exactly synced up with broadcast NTSC signals.
+speed of 1.790287MHz. Here's where the author does more hand waving because he
+doesn't exactly understand what the subtleties are and why those numbers
+aren't exact, and instead points to the Altirra Hardware Reference Manual and
+lets it explain what is really happening. It shows that while there *are*
+indeed 29868 cycles per frame, the processor speed is actually 1.790772MHz, to
+prevent the color subprime mortgage from investigating phantoms on each
+scan line. Something like that, I didn't understand. *At all*. At any
+rate, a signal is produced that can be displayed on a TV, even if it does not
+exactly sync up with broadcast NTSC signals.
 
 PAL systems produce the same 228 color clocks and 114 machine cycles per line,
 but display 312 scan lines. This results in 35568 cycles per frame, and with
@@ -358,9 +374,11 @@ then they must be enabled through a write to ``NMIEN`` at ``$d40e``.
    You must set the address of your DLI before enabling them, otherwise the DLI
    could be called and use whatever address is stored at ``$200``.
 
-This can look like this, where the constants ``NMIEN_VBI`` and ``NMIEN_DLI``
-are defined as ``$40`` and ``$80``, respectively, in `hardware.s` in the sample
-repository.
+This initialization code can look like the following, where the constants
+``NMIEN_VBI`` and ``NMIEN_DLI`` are defined as ``$40`` and ``$80``,
+respectively, in `hardware.s` in the sample repository. Since ``NMIEN`` also
+controls the vertical blank interrupt, you must make sure that the VBI enable
+flag is also set.
 
 .. code-block::
 
@@ -370,17 +388,19 @@ repository.
            lda #>dli
            sta VDSLST+1
 
-           ; activate display list interrupt
-           lda #NMIEN_VBI | NMIEN_DLI
+           ; activate display list interrupt and vertical blank interrupt
+           lda #NMIEN_DLI | NMIEN_VBI
            sta NMIEN
 
 If your program has multiple DLIs, it may be necessary to set your DLIs in a
-vertical blank interrupt to guarantee that ANTIC is not in the middle of the
-screen when the DLI becomes active. In Yaron Nir's tutorial a different
-technique is used, one not requiring a vertical blank interrupt but instead
-using the ``RTCLOK`` 3-byte zero page variable. The last of the bytes, location
-``$14``, is incremented every vertical blank, so that technique is to wait
-until location ``$14`` changes, then set ``NMIEN``:
+vertical blank interrupt to guarantee that ANTIC will process them in the
+right order. Outside the VBI, your code could be running at an arbitrary scan
+line, perhaps between display list instructions that have their DLI bits set.
+In Yaron Nir's tutorial a different technique is used, one not requiring a
+vertical blank interrupt but instead using the ``RTCLOK`` 3-byte zero page
+variable to instead infer that a VBI has *just* occurred. The last of the
+bytes, location ``$14``, is incremented every vertical blank, so that
+technique is to wait until location ``$14`` changes, then set ``NMIEN``:
 
 .. code-block::
 
@@ -388,8 +408,8 @@ until location ``$14`` changes, then set ``NMIEN``:
    ?loop   cmp RTCLOK+2  ; will be equal until incremented in VB
            beq ?loop
 
-           ; activate display list interrupt
-           lda #NMIEN_VBI | NMIEN_DLI
+           ; activate display list interrupt and vertical blank interrupt
+           lda #NMIEN_DLI | NMIEN_VBI
            sta NMIEN
 
 
@@ -397,7 +417,7 @@ Hardware & Shadow Registers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The Atari is a memory-mapped system, where hardware devices like the ANTIC and
-POKEY chips are *mapped* to locations in memory and data is passed back and
+GTIA chips are *mapped* to locations in memory and data is passed back and
 forth by reading or writing to specific addresses. They are usually either
 read-only or write-only, and many times an address is used for wildly
 different features depending on whether the address is read from or written
