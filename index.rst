@@ -333,19 +333,22 @@ refreshing. Scrolling requires additional cycle stealing because ANTIC needs
 to fetch more memory.
 
 Bitmapped modes (modes 8 - F) have cycles stolen corresponding to the number
-of bytes-per-line used in that mode, in addition to the up-to 17 cycles stolen
-for ANTIC overhead. For example, mode E will use an additional 40 cycles, so
-in the context of writing a DLI for a game, the typical number of stolen cycles
-could be 57 out of the 114 cycles per scan line.
+of bytes per line used in that mode. For example, mode E will use an
+additional 40 cycles, so in the context of writing a DLI for a game, the
+typical number of stolen cycles could be 57 out of the 114 cycles per scan
+line: 17 cycles for ANTIC overhead and 40 for the number of bytes per line.
 
-Text modes steal additional cycles over bitmapped graphics modes, because
+Text modes require additional cycles over bitmapped graphics modes, because
 ANTIC must fetch the font glyphs in addition to its other work. The first scan
 line of a font mode is almost entirely used by ANTIC and only a small number
 of cycles is available to the 6502. For normal 40-byte wide playfields, the
 first line of ANTIC modes 2 through 5 will yield at most about 30 cycles and
-subsequent lines about 60 cycles per scan line. Adding player/missile graphics
-and scrolling can reduce the available cycles to less than 10 on the first
-line and about 30 on subsequent lines!
+subsequent lines about 60 cycles per scan line.
+
+About the worst-case scenario is one of the best modes for games: ANTIC mode
+4. This text mode, combined with scrolling and player/missile graphics and can
+reduce the available cycles to fewer than 10 on the first line and about 50 on
+subsequent lines!
 
 .. seealso::
 
@@ -971,6 +974,11 @@ useful.
 #2: Moving the DLI Up and Down the Screen
 ------------------------------------------------------------
 
+The DLI subroutine itself doesn't directly know what scan line caused the
+interrupt because all DLIs are routed through the same vector at ``VDLSTL``.
+The only trigger is in the display list: the DLI bit on the display list
+instruction.
+
 .. figure:: moving_dli.gif
    :align: center
    :width: 90%
@@ -981,11 +989,6 @@ useful.
    <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/src/moving_dli.s">moving_dli.s</a></li>
    <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/xex/moving_dli.xex">moving_dli.xex</a></li>
    </ul>
-
-The DLI subroutine itself doesn't directly know what scan line caused the
-interrupt because all DLIs are routed through the same vector at ``VDLSTL``.
-The only trigger is in the display list: the DLI bit on the display list
-instruction.
 
 The display list can be modified in place to move the DLI to different lines
 without changing any DLI code. The code to move the DLI should be performed in
@@ -1018,11 +1021,11 @@ background below the last mode 4 line on the screen.
 Interlude: A Player/Missile Graphics Refresher
 --------------------------------------------------
 
-Player/Missile graphics are the sprite system provided by the GTIA:
+Player/Missile Graphics is the sprite system provided by the GTIA:
 independently positioned overlays on the playfield graphics that don't disturb
 the playfield.
 
-.. note:: the word *sprite* in this sense wasn't in use when the Atari was designed, and `several <https://graphics.fandom.com/wiki/Sprite>`_ `sources <https://en.wikipedia.org/wiki/Sprite_(computer_graphics)>`_ `claim <http://groups.google.com/group/comp.sys.ti/msg/73e2451bcae4d91a>`_ that it was coined by the designers of the Texas Instrument TI 9918 graphics chip at about the same timeframe.
+.. note:: the word *sprite* in this sense wasn't in use when the Atari was designed, and `several <https://graphics.fandom.com/wiki/Sprite>`_ `sources <https://en.wikipedia.org/wiki/Sprite_(computer_graphics)>`_ `claim <http://groups.google.com/group/comp.sys.ti/msg/73e2451bcae4d91a>`_ that it was coined by the designers of the Texas Instruments TI 9918 graphics chip at about the same timeframe.
 
 The GTIA provides 4 players with independent colors (from each other or the
 playfield) and 4 missiles with colors matching their respective player, or the
