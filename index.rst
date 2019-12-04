@@ -563,6 +563,9 @@ artifacts appearing on screen.
 A DLI Can Affect Many Scan Lines
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+This example shows that a single DLI affect multiple scan lines, even crossing
+into subsequent ANTIC mode 4 lines in the display list.
+
 .. figure:: rainbow_wsync.png
    :align: center
    :width: 90%
@@ -588,8 +591,9 @@ section, arbitrary amounts of code can be executed in a DLI.
    of a text mode. I don't know why I thought that something bad would happen
    if a DLI went long, but I did.
 
-This example shows how to have a single DLI affect multiple scan lines, even
-crossing into subsequent ANTIC mode 4 lines in the display list:
+This DLI changes background colors 16 times, where each color change lasts 2
+scan lines. So 32 scan lines means that it covers 4 display list entries of
+ANTIC mode 4.
 
 .. code-block::
 
@@ -613,13 +617,12 @@ crossing into subsequent ANTIC mode 4 lines in the display list:
            pla
            rti             ; always end DLI with RTI!
 
-It changes background colors 16 times, where each color change lasts 2 scan
-lines. So 32 scan lines means that it covers 4 display list entries of ANTIC
-mode 4.
-
 
 A Crash Course on Display List Interrupts Getting Interrupted
 -----------------------------------------------------------------
+
+Because DLIs are non-maskable interrupts and NMIs can't be blocked, a DLI will
+interrupt whatever is happening, including another DLI. To summarize:
 
  * DLIs can be interrupted by other DLIs
  * DLIs can be interrupted by the vertical blank
@@ -627,6 +630,27 @@ A Crash Course on Display List Interrupts Getting Interrupted
 
 DLI Interrupting Another DLI
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Here's a similar DLI to the above, except it changes the luminance value
+instead of the color value to make the effect easier to see. It starts with a
+bright pink and gets dimmer down to a dark red after 32 scan lines. But this
+time, the display list has *two* mode 4 lines that have the DLI bit set, the
+2nd and 4th:
+
+.. code-block::
+
+   dlist   .byte $70,$70,$70
+           .byte $44,$00,$40
+           .byte $84  ; first DLI triggered on last scan line
+           .byte 4
+           .byte $84  ; second DLI triggered on last scan line
+           .byte 4,4,4,4,4,4,4,4
+           .byte 4,4,4,4,4,4,4,4
+           .byte 4,4,4,4
+           .byte $41,<dlist,>dlist
+
+The first DLI takes 32 scan lines to complete, but it is only 16 scan lines
+through its operation when the second DLI hits:
 
 .. figure:: dli_interrupting_dli.png
    :align: center
@@ -645,10 +669,6 @@ the control returns to the DLI at the point where it left off. But at this
 point, due to the interrupting event, the restored DLI will be resumed some
 number of scan lines below where it was interrupted, likely resulting in
 unplanned behavior.
-
-Here's a similar DLI to the above, except it changes the luminance value
-instead of the color value to make the effect easier to see. It starts with a
-bright pink and gets dimmer down to a dark red after 32 scan lines:
 
 .. code-block::
 
@@ -672,22 +692,8 @@ bright pink and gets dimmer down to a dark red after 32 scan lines:
            pla
            rti             ; always end DLI with RTI!
 
-But this time, the display list has *two* lines that have the DLI bit set:
-
-.. code-block::
-
-   dlist   .byte $70,$70,$70
-           .byte $44,$00,$40
-           .byte $c4  ; first DLI triggered on last scan line
-           .byte $44
-           .byte $c4  ; second DLI triggered on last scan line
-           .byte $44,$44,$44,$44,$44,$44,$44,$44
-           .byte $44,$44,$44,$44,$44,$44,$44,$44
-           .byte $44,$44,$44,$44
-           .byte $41,<dlist,>dlist
-
-Because the ``VDLSTL`` pointer is not changed, the same code will be called
-each time an interrupt occurs.
+Because the display list vector ``VDLSTL`` is not changed, the same code will
+be called each time an interrupt occurs.
 
 The first DLI hits and starts with a bright background color on the first scan
 line of the third line of text. But because this display list takes a long
