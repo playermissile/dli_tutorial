@@ -86,21 +86,23 @@ This drawing is a simplification, seeming to show that there are 524 scan
 lines. In reality, and there are 525 and each field actually draws 262 **and
 one half** scan lines (and not 262 on one field and 263 on another), but this
 is all very complicated and not necessary for our purposes. However, at the
-risk of further complicating matters, if you think of the two fields combining
-into one frame (the even and odd scan lines "combing" together to create a
-complete image), what we think of as one scan line of the 262 produced by an
-ANTIC display list will actually correspond to two scan lines on a TV, one
-from an even field and one from an odd.
+risk of further complicating matters, the Atari produces 262 scan lines for
+the even field and 262 scan lines for the odd field. In the situation where
+the Atari is producing an image that is not changing as time goes on, like the
+computer is sitting at the BASIC language READY prompt and you aren't typing
+anything, the scan lines produced for the even field will be exactly the same
+as the scan lines produced for the odd field.
 
-Practically speaking, you do not need to care that the screen is interlaced.
-The Atari draws 262 scan lines every field, regardless if it is an even field
-or an odd field.
+Practically speaking, you do not need to care that the screen is interlaced
+with 525 scan lines (for NTSC). Our mental model will be as if the Atari is
+drawing to a non-interlaced screen with 262 scan lines and a frame rate of
+59.94Hz. (For PAL, substitute 625, 312, and 50, respectively.)
 
 .. seealso::
 
    * `All About Video Fields <https://lurkertech.com/lg/fields/>`_
 
-How Color Works and There's More Hand Waving Going On, Isn't There?
+How Color Works and There's More Hand Waving, Isn't There?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 How TVs produce the colors that they display is very complicated and so far
@@ -121,7 +123,7 @@ corresponding to half a color clock, and only artifacting color is available.
    * Obligatory link to the `NTSC article on Wikipedia <https://en.wikipedia.org/wiki/NTSC>`_
    * `Composite artifact colors <https://en.wikipedia.org/wiki/Composite_artifact_colors>`_ article on Wikipedia
 
-How The CPU Frequency Was Chosen and Why Is There Even More Hand Waving Going On, Oh Author Person?
+How The CPU Frequency Was Chosen and Why Is There Even More Hand Waving, Oh Author Person?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For NTSC machines, each frame draws 262 scan lines with 228 color clocks per
