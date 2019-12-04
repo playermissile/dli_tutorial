@@ -8,7 +8,7 @@ A Crash Course on Advanced DLIs
 
 .. centered:: **Atari 8-bit Display List Interrupts: An Advanced Tutorial**
 
-**Version: 0.4, updated 3 Dec 2019**
+**Revision 1, updated 3 Dec 2019**
 
 This is a tutorial on advanced Display List Interrupts (DLIs) for the Atari
 8-bit series of computers. In a nutshell, DLIs provide a way to notify your
@@ -136,7 +136,7 @@ aren't exact, and instead points to the Altirra Hardware Reference Manual and
 lets it explain what is really happening. It shows that while there *are*
 indeed 29868 cycles per frame, the processor speed is actually 1.790772MHz, to
 prevent the color subprime mortgage from investigating phantoms on each
-scan line. Something like that, I didn't understand. *At all*. At any
+scan line. Something like that; the author didn't understand. *At all*. At any
 rate, a signal is produced that can be displayed on a TV, even if it does not
 exactly sync up with broadcast NTSC signals.
 
@@ -877,6 +877,12 @@ they typically don't do a lot of calculations. Most of the setup work will
 generally be done outside of the DLI and the DLI itself just handles the result
 of that work.
 
+.. raw:: html
+
+   <p>
+   <img src="/_static/Atari_logo_hr.png">
+   <p>
+
 
 Advanced DLI Examples
 ------------------------
@@ -887,6 +893,20 @@ at the `dli_tutorial source code repository <https://github.com/playermissile/dl
 They are coded using MAC/65 assembler syntax, but very few assembler-specific
 features are actually used, so they should be trivially ported to other
 assemblers.
+
+To get a copy of all the examples and source code, you can download and
+install `git <https://git-scm.com/>`_ for your platform. Then open a command
+line prompt on your computer and enter the command: ``git clone
+https://github.com/playermissile/dli_tutorial.git`` to download the complete
+repository.
+
+You can also download individual assembly source and XEX files from links in
+each section.
+
+In an attempt to de-clutter the examples as much as possible, most of the
+boilerplate code (for initialization and setup tasks) has been placed in
+libraries that are included during the compilation process. These are files
+like ``util.s``, ``util_dli.s`` and so forth, and are available in the source code repository or directly `here <https://github.com/playermissile/dli_tutorial/src>`_.
 
 
 #1: Multiple DLIs
@@ -998,26 +1018,29 @@ background below the last mode 4 line on the screen.
 Interlude: A Player/Missile Graphics Refresher
 --------------------------------------------------
 
-Player/Missile graphics are the sprite system provided by the GTIA, and are
-based on strips of data displayed vertically down the screen.
+Player/Missile graphics are the sprite system provided by the GTIA:
+independently positioned overlays on the playfield graphics that don't disturb
+the playfield.
 
-.. note:: the word *sprite* wasn't in use in this sense when the Atari was designed, but that is exactly what player/missile graphics are: overlays on the playfield graphics that don't disturb the playfield. `Several <https://graphics.fandom.com/wiki/Sprite>`_ `sources <https://en.wikipedia.org/wiki/Sprite_(computer_graphics)>`_ `claim <http://groups.google.com/group/comp.sys.ti/msg/73e2451bcae4d91a>`_ that it was coined by the designers of the Texas Instrument TI 9918 graphics chip.
+.. note:: the word *sprite* in this sense wasn't in use when the Atari was designed, and `several <https://graphics.fandom.com/wiki/Sprite>`_ `sources <https://en.wikipedia.org/wiki/Sprite_(computer_graphics)>`_ `claim <http://groups.google.com/group/comp.sys.ti/msg/73e2451bcae4d91a>`_ that it was coined by the designers of the Texas Instrument TI 9918 graphics chip at about the same timeframe.
 
 The GTIA provides 4 players with independent colors (from each other or the
-playfield) and 4 missiles with matching colors, or the 4 missiles can be
-combined into a 5th player with its own color (although this reuses one
-playfield color). The players are 8 bits wide and can be displayed as one,
-two, or four color clocks wide per bit. This corresponds a width on screen of
-8, 16, and 32 color clocks, respectively. Sizes for all players and missiles
-can be set independently.
+playfield) and 4 missiles with colors matching their respective player, or the
+4 missiles can be combined into a 5th player with its own color (although this
+reuses one playfield color). The players are 8 bits wide and can be displayed
+as one, two, or four color clocks wide per bit. This corresponds a width on
+screen of 8, 16, and 32 color clocks, respectively. Widths for all players and
+missiles can be set independently.
 
 Each player and missile can be positioned at an arbitrary horizontal location
 by setting a hardware register, but vertical positioning requires copying data
-to particular locations in the memory area set aside for the player/missile
-graphics area. The byte of memory at a location in each players graphics area
-determines the bit pattern for that player at a particular scan line. Missiles
-are two bits wide each, setting data for one missile without affecting the
-others requires bit masking.
+to particular locations in the memory area reserved for it. Each player spans
+the height of the screen, and it is only the bit pattern in its storage area
+that determines what is drawn on a particular scan line.
+
+Missiles are two bits wide each with all 4 missiles packed into a single byte
+for a particular scan line. Bit masking is required to set data for one
+missile without affecting the others.
 
 The quick summary for our purposes is that horizontal repositioning of players
 is fast, it takes only a single store instruction. Vertical repositioning of
@@ -1160,10 +1183,10 @@ It's also possible, with careful timing, to reuse a player on a single line.
 However, purposeful use of this would difficult given all the different
 horizontal locations of ANTIC's cycle stealing.
 
-As in the `Timing Limitations of DLIs`_ section, mode 4 was chosen (in all of
-its cycle-stealing glory) for these examples to get an idea of the worst-case
-scenerio. Taking out the ``WSYNC`` and the color change did allow enough time
-that both the positions and sizes were changed without visible artifacts:
+Mode 4 was chosen (in all of its cycle-stealing glory) for these examples to
+get an idea of the worst-case scenerio. Taking out the ``WSYNC`` and the color
+change did allow enough time that both the positions and sizes were changed
+without visible artifacts:
 
 .. figure:: simple_multiplex_player_no_wsync.png
    :align: center
