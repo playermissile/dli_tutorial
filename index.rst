@@ -1358,7 +1358,21 @@ been any collisions with anything in any band.
 Reusing players on the same scan line is possible, but its usefulness may be
 limited to mostly static cases.
 
-<example goes here>
+.. note:: Aaaaand, ok. Yikes. I hope you like cycle counting and consulting the timing reference charts in the Altirra Hardware Reference Manual, because you will be busy.
+
+
+.. figure:: horizontal_multiplex_player.png
+   :align: center
+   :width: 90%
+
+.. raw:: html
+
+   <ul>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/src/horizontal_multiplex_player.s">horizontal_multiplex_player.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/xex/horizontal_multiplex_player.xex">horizontal_multiplex_player.xex</a></li>
+   </ul>
+
+
 
 
 #n: Multiple Scrolling Regions
