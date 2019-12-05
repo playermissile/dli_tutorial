@@ -5,19 +5,6 @@
 ;
 ; Create display list of 40x24 mode 4 lines
 ;
-init_static_screen_bands
-        ; load display list & fill with test data
-        lda #<dlist_static_bands
-        sta SDLSTL
-        lda #>dlist_static_bands
-        sta SDLSTL+1
-        jsr fillscreen_static
-        jsr fillscreen_bands
-        rts
-
-;
-; Create display list of 40x24 mode 4 lines
-;
 init_static_screen_mode4
         ; load display list & fill with test data
         lda #<dlist_static_mode4
@@ -186,19 +173,6 @@ fillscreen_static
         sta $8348,y
         sta $8370,y
         sta $8398,y
-        iny
-        cpy #40
-        bcc ?loop
-        rts
-
-fillscreen_bands
-        ldy #0
-?loop   lda #33
-        sta $8050,y
-        lda #34
-        sta $8168,y
-        lda #35
-        sta $8280,y
         iny
         cpy #40
         bcc ?loop
@@ -384,13 +358,6 @@ fillscreen_static_24_bands
         cpy #40
         bcc ?loop
         rts
-
-dlist_static_bands
-        .byte $70,$70,$70
-        .byte $44,$00,$80,4,6,6,4,4
-        .byte 4,4,4,4,6,6,4,4,4,4
-        .byte 4,4,6,6,4,4
-        .byte $41,<dlist_static_bands,>dlist_static_bands
 
 ; mode 4 standard display list
 dlist_static_mode4
