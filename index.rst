@@ -358,6 +358,14 @@ subsequent lines!
    each mode.
 
 
+Restrictions
+~~~~~~~~~~~~~~~~~~~~
+
+ * display lists cannot cross a 1K boundary
+ * display list data cannot cross a 4k boundary, so you must use a display list command with the ``LMS`` bit if using a bitmapped display mode that will result in a larger memory usage
+
+
+
 A Crash Course on Display List Interrupts
 ---------------------------------------------
 
@@ -976,6 +984,7 @@ DLI saves 6 cycles (by obviating the need for changing the high byte with
 ``LDA #>dli2; STA VDLSTL+1``). That may be enough for this optimization to be
 useful.
 
+.. _moving_dli:
 
 #2: Moving the DLI Up and Down the Screen
 ------------------------------------------------------------
@@ -1425,6 +1434,148 @@ The takeaways here:
  * the author may revisit this technique at some point, but for now will leave further exploration to the reader, assuming the reader is much more patient regarding cycle counting than the author.
 
 
+Interlude: Kernels
+-------------------------------------------------------
+
+The concept of a kernel comes from Atari 2600 programming, where the
+programmer had to build the screen line-by-line, because the 2600 did not have
+enough memory to store an entire frame. It had a line buffer, rather than a
+frame buffer, so to create a graphic image with any vertical detail, the code
+must change graphic information as the electron beam moves down the screen.
+
+Kernels for our purposes will be DLIs that take control for many scan lines to
+perform graphic operations that are not possible otherwise. We have seen
+horizontal positioning of players accomplished with a traditional DLI setup
+with interrupts on multiple display list commands. It could have been
+performed using a kernel, which (assuming the graphics mode is bitmapped
+rather than text) would have removed the restriction created by need for extra
+cycles near the ``RTI`` instruction.
+
+A simple kernel can be used to change the background color to split the screen
+horizontally. Having learned a lesson or two, the author is using a graphics
+mode for the following example, mode E (the 160x192, 4 color mode):
+
+.. figure:: background_color_kernel.png
+   :align: center
+   :width: 90%
+
+.. raw:: html
+
+   <ul>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/src/background_color_kernel.s">background_color_kernel.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/xex/background_color_kernel.xex">background_color_kernel.xex</a></li>
+   </ul>
+
+which does show much more (but not complete!) uniformity. The problem scan
+lines are the first and somewhere in the middle. Here's the DLI:
+
+.. code-block::
+
+   dli     pha             ; using all registers
+           txa
+           pha
+           tya
+           pha
+   
+           ldy #192
+           sta WSYNC       ; initialize to near beginning of first scan line of interest
+   ?loop   lda #90         ; set background color
+           sta COLBK
+           nop             ; wait for some time
+           nop
+           nop
+           nop
+           nop
+           nop
+           nop
+           nop
+           nop
+           nop
+           nop
+           nop
+           nop
+           lda #70         ; after 1st copy is drawn but before electron beam
+           sta COLBK
+           dey
+           sta WSYNC
+           bne ?loop
+   
+           lda #0
+           sta COLBK
+   
+   ?done   pla             ; restore all registers
+           tay
+           pla
+           tax
+           pla
+           rti             ; always end DLI with RTI!
+
+The code shows lots of waiting around. Using cycle counting of opcodes is the
+finest level of precision for direct manipulation of the graphics screen.
+There's no way to get accuracy down to an individual color clock, unless the
+timing happens to work out that the instruction duration combined with the
+particular cycles on which ANTIC pauses the CPU to do its work happen to fall
+on the color clock you're interested in.
+
+The issue on the first scan line is caused by the first ``WSYNC`` not being
+immediately followed by a branch instruction as in all subsequent calls to
+``WSYNC``. Solving this requires an extra delay added after that first
+``WSYNC``.
+
+Examining the display list will probably make it obvious where the problem scan
+line is in the middle of the screen:
+
+.. code-block::
+
+   ; mode E standard display list
+   dlist_static_modeE
+           .byte $70,$70,$70
+           .byte $4e,$00,$80
+           .byte $e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e
+           .byte $e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e
+           .byte $e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e
+           .byte $e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e
+           .byte $e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e
+           .byte $e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e
+           .byte $4e,$00,$8f  ; yep, it's right here
+           .byte $e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e
+           .byte $e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e
+           .byte $e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e
+           .byte $e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e
+           .byte $e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e
+           .byte $e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e
+           .byte $41,<dlist_static_modeE,>dlist_static_modeE
+
+Because ANTIC can't cross a 4k memory boundary (it only has 10 address lines,
+2^10 = 4096), the display list for full screen display of modes D, E, and F
+must be broken up into two sections of about 4K each. The ``LMS`` instruction
+``$4e`` causes ANTIC to steal 2 cycles to read those two bytes that hold the
+screen address, which delays the timing by 2 cycles and forces the color
+change to happen later than desired. This problem wouldn't happen with a
+display list of modes A, B, and C, for instance, because their maximum use of
+memory is less than 4k.
+
+Solving this problem requires some extra handling after 95 scan lines have
+passed in order to remove a bit of delay before changing the background color.
+
+But the author doesn't find that this particular example would be very useful
+in actual games, so the next section will look at a technique using a kernel
+that is in common use in games: the multicolor player.
+
+
+#n: Multicolor Player With Movement
+-------------------------------------------------------
+
+We have seen DLIs being used to change player position, size, and color. Until
+now, these demos have been limited to particular vertical bands on screen.
+Changing player attributes at an arbitrary location on screen will require a
+kernel-style DLI.
+
+.. note:: Strictly speaking, this is not true. If players do not overlap vertically, or only a single player needs to have characteristics adjusted, a `moving DLI <moving_dli_>`_ technique could work.
+
+
+<example goes here>
+
 #n: Multiplexing with Arbitrary Motion
 -------------------------------------------------------
 
@@ -1452,6 +1603,10 @@ collision registers in the vertical blank, which will report if there have
 been any collisions with anything in any band.
 
 <example goes here>
+
+
+Interlude: Scrolling
+--------------------------------
 
 
 #n: Multiple Scrolling Regions
