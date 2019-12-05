@@ -1323,6 +1323,108 @@ The colors are not the same as band L, however, because of the use of the
 shadow registers to set the initial color in the ``init_pmg`` subroutine.
 
 
+#5: Multiplexing Players Horizontally
+----------------------------------------------------------------
+
+Reusing players on the same scan line is possible, but without some extremely
+complicated code, its usefulness may be limited to mostly static cases.
+
+.. note:: Aaaaand, ok. Yikes. I hope you like cycle counting and consulting the timing reference charts in the Altirra Hardware Reference Manual, because you will be busy.
+
+
+.. figure:: horizontal_multiplex_player.png
+   :align: center
+   :width: 90%
+
+.. raw:: html
+
+   <ul>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/src/horizontal_multiplex_player.s">horizontal_multiplex_player.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/xex/horizontal_multiplex_player.xex">horizontal_multiplex_player.xex</a></li>
+   </ul>
+
+Here's the DLI that produces the effect above, where player 3 has multiple
+copies at the same vertical position. Again there are 12 vertical bands (this
+time ANTIC mode 5), where the one copy of player 3 is at the left side of the
+screen and the other 3 shift slowly to the left as it moves down bands in
+order to find the minimum possible horizontal shift between copies. This is
+not a kernel (see the next section for that), so the DLI bit is set on each of
+the mode 5 lines.
+
+.. code-block::
+
+   dli     pha             ; using A & X
+           txa
+           pha
+   
+           dec copy1       ; move copies to the left one color clock each scan line
+           dec copy2
+           sta WSYNC       ; skip rest of last line of DLI line
+           dec copy3       ; not enough time to do all 3 decrements before 1st WSYNC
+           ldx #14         ; prepare for 14 scan lines in the loop
+           sta WSYNC       ; skip 1st line of mode 5 where ANTIC steals almost all cycles
+   ?loop   lda #48         ; set initial position of player 3
+           sta HPOSP3
+           nop             ; we're still on the tail end of the prevous scan
+           nop             ;   line, so we need to wait until the electron beam
+           nop             ;   passes this first position before we set the
+           nop             ;   next HPOS.
+           nop
+           nop
+           lda copy1       ; can't place copies until after electron beam draws
+           sta HPOSP3      ;   the player in the previous location. If you try
+           lda copy2       ;   to move HPOSP3 too early, the previous location
+           sta HPOSP3      ;   won't even get drawn. Too late, and it won't draw
+           lda copy3       ;   anything in the current location.  It's a battle.
+           sta HPOSP3
+           dex
+           beq ?done
+           sta WSYNC
+           bne ?loop
+
+   ?done   pla             ; restore A & X
+           tax
+           pla
+           rti             ; always end DLI with RTI!
+
+This requires a VBI to reset the starting horizontal position at the top of
+each frame.
+
+.. code-block::
+
+   vbi     lda #68         ; reset position counters for each copy of player 3
+           sta copy1
+           lda #122
+           sta copy2
+           lda #156
+           sta copy3
+           jmp XITVBV      ; always exit deferred VBI with jump here
+
+There is a lot to unpack here.
+
+First: using a text mode is a mistake because ANTIC steals so many cycles on
+the first scan line that there's no way to place copies on that scan line. On
+subsequent lines, there is enough time to make multiple copies of a player
+except for the last line that will have to contain the ``RTI`` instruction.
+However, because this is not using a kernel- style DLI where it takes control
+for all 192 lines, the ``RTI`` has to happen before the last scan line so
+there is enough time for the interrupt processing for the next DLI without the
+the current DLI getting interrupted, which would then stack interrupts and
+cause scan line offsets.
+
+Second: notice the bands places in which the number **3** isn't drawn in the
+player, instead only a single scan line in the player 3 color appears. This
+means there are not enough available cycles to set the new position of the
+player before the electron beam has already passed the desired horizontal
+position.
+
+The takeaways here:
+
+ * the cycle counting necessary will be much easier using bitmap modes
+ * it will probably be more successful to use a kernel rather than multiple DLIs
+ * the author may revisit this technique at some point, but for now will leave further exploration to the reader, assuming the reader is much more patient regarding cycle counting than the author.
+
+
 #n: Multiplexing with Arbitrary Motion
 -------------------------------------------------------
 
@@ -1350,29 +1452,6 @@ collision registers in the vertical blank, which will report if there have
 been any collisions with anything in any band.
 
 <example goes here>
-
-
-#n: Multiplexing Players Horizontally
-----------------------------------------------------------------
-
-Reusing players on the same scan line is possible, but its usefulness may be
-limited to mostly static cases.
-
-.. note:: Aaaaand, ok. Yikes. I hope you like cycle counting and consulting the timing reference charts in the Altirra Hardware Reference Manual, because you will be busy.
-
-
-.. figure:: horizontal_multiplex_player.png
-   :align: center
-   :width: 90%
-
-.. raw:: html
-
-   <ul>
-   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/src/horizontal_multiplex_player.s">horizontal_multiplex_player.s</a></li>
-   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/xex/horizontal_multiplex_player.xex">horizontal_multiplex_player.xex</a></li>
-   </ul>
-
-
 
 
 #n: Multiple Scrolling Regions

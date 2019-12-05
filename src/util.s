@@ -131,6 +131,20 @@ init_static_screen_mode5_12_bands
         rts
 
 ;
+; Create display list of 40x12 mode 5 lines in 12 bands labeled A - L
+;
+init_static_screen_mode5_kernel
+        ; load display list & fill with test data
+        lda #<dlist_static_mode5
+        sta SDLSTL
+        lda #>dlist_static_mode5
+        sta SDLSTL+1
+        jsr fillscreen_static_24_bands
+        lda #$f0        ; turn on DLI bit for 3rd $70 (8 blank lines)
+        sta dlist_static_mode5 + 2
+        rts
+
+;
 ; table of band centers in PMG coords
 ;
 center_pmg_y_6_bands
