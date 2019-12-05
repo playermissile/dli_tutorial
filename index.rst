@@ -1546,8 +1546,8 @@ line is in the middle of the screen:
            .byte $e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e,$e
            .byte $41,<dlist_static_modeE,>dlist_static_modeE
 
-Because ANTIC can't cross a 4k memory boundary (it only has 10 address lines,
-2^10 = 4096), the display list for full screen display of modes D, E, and F
+Because ANTIC can't cross a 4k memory boundary (it only has 12 address lines,
+2^12 = 4096), the display list for full screen display of modes D, E, and F
 must be broken up into two sections of about 4K each. The ``LMS`` instruction
 ``$4e`` causes ANTIC to steal 2 cycles to read those two bytes that hold the
 screen address, which delays the timing by 2 cycles and forces the color
