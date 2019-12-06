@@ -22,3 +22,7 @@ dli     pha             ; only using A register, so save old value to the stack
         sta COLBK       ; store it in the hardware register
         pla             ; restore the A register
         rti             ; always end DLI with RTI!
+
+; tell DOS where to run the program when loaded
+        * = $2e0
+        .word init

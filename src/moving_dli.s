@@ -123,3 +123,7 @@ dlist_line_lookup
         .byte 22, 23, 24, 25, 26, 27, 28
 dlist_line_lookup_last
 dlist_line_lookup_count = dlist_line_lookup_last - dlist_line_lookup
+
+; tell DOS where to run the program when loaded
+        * = $2e0
+        .word init

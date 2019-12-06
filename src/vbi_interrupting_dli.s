@@ -41,3 +41,7 @@ dli     pha             ; save A & X registers to stack
         tax
         pla
         rti             ; always end DLI with RTI!
+
+; tell DOS where to run the program when loaded
+        * = $2e0
+        .word init

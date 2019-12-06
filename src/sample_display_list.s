@@ -49,3 +49,7 @@ dlist
 
         .sbyte " And here's some ANTIC mode 5:          "
         .sbyte "0123456789012345678901234567890123456789"
+
+; tell DOS where to run the program when loaded
+        * = $2e0
+        .word init

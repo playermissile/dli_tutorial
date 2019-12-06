@@ -92,3 +92,7 @@ dli2    pha             ; only using A register, so save it to the stack
         rti             ; always end DLI with RTI!
 
 .include "font_data_antic4.s"
+
+; tell DOS where to run the program when loaded
+        * = $2e0
+        .word init

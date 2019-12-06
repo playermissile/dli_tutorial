@@ -51,3 +51,7 @@ vbi     lda #<dli       ; set DLI pointer to first in chain
         lda #>dli
         sta VDSLST+1
         jmp XITVBV      ; always exit deferred VBI with jump here
+
+; tell DOS where to run the program when loaded
+        * = $2e0
+        .word init

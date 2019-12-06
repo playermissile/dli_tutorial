@@ -54,3 +54,7 @@ dli     pha             ; using all registers
 .include "util.s"
 .include "util_dli.s"
 .include "util_bitmap.s"
+
+; tell DOS where to run the program when loaded
+        * = $2e0
+        .word init
