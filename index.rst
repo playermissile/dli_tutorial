@@ -379,7 +379,7 @@ any registers that it uses, restoring them when it is done using them, and must
 exit using the ``RTI`` instruction.
 
 Display list interrupts are not enabled by default. To use a DLI, the address
-vector at ``VDLSLT`` (``$200`` and ``$201``) must be set to your routine, and
+vector at ``VDSLST`` (``$200`` and ``$201``) must be set to your routine, and
 then they must be enabled through a write to ``NMIEN`` at ``$d40e``.
 
 .. warning::
