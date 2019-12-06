@@ -613,7 +613,7 @@ ANTIC mode 4.
            sta WSYNC       ; first WSYNC gets us to start of scan line we want
    ?loop   sta COLBK       ; change background color
            clc
-           adc #$11        ; change color value, luminance remains the same
+           adc #$10        ; change color value, luminance remains the same
            dex             ; update iteration count
            sta WSYNC       ; make it the color change last ...
            sta WSYNC       ;   for two scan lines
