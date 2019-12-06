@@ -8,7 +8,7 @@ A Crash Course on Advanced DLIs
 
 .. centered:: **Atari 8-bit Display List Interrupts: An Advanced Tutorial**
 
-**Revision 2, updated 5 Dec 2019**
+**Revision 3, updated 6 Dec 2019**
 
 This is a tutorial on advanced Display List Interrupts (DLIs) for the Atari
 8-bit series of computers. In a nutshell, DLIs provide a way to notify your
