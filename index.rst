@@ -1515,6 +1515,140 @@ in actual games, so the next section will look at a technique using a kernel
 that is in common use in games: the multicolor player.
 
 
+Interlude: Scrolling
+--------------------------------
+
+.. note:: In a mashup of *The Princess Bride*, Pierre Fermat, and random rhyming: Let me explain! There is too much so let me sum up: I'll refrain because this margin is too small to contain, and restrain my writing here to only the most germane. Rather than a hurricane, I will constrain this topic here to an ad campaign, and daisy chain to a separate tutorial that I will maintain to entertain and in detail ascertain the scrolling picture plane. In other words, see my (forthcoming) :ref:`Crash Course on Fine Scrolling <scrolling_tutorial>`.
+
+Display lists provide the ability to easily perform course scrolling without
+moving any display memory around. Instead, the visible display can be adjusted
+to provide scrolling at byte resolution by adjusting the address pointed to by
+any LMS instructions in the display list. The amount of graphical detail in a
+byte depends on the graphics mode: character modes by definition are one
+character per byte so the course scrolling limits are a single character
+vertically or horizontally. Bitmap modes can be 1 to 8 scan lines tall per
+byte, and 4 or 8 color clocks wide per byte.
+
+The Fine scrolling hardware registers provide the bridge between byte size and
+scan lines (vertically) or color clocks (horizontally; and note that a color
+clock in the smallest unit for horizontal scrolling, even in mode F).
+Vertically the ``VSCROL`` hardware register allows fine scrolling up to 16
+scan lines, and horizontally the ``HSCROL`` register provides up to 16 color
+clocks fine scrolling.
+
+Continuous fine scrolling requires the use of both fine scrolling and course
+scrolling techniques, with the fine scrolling used until the size limit of the
+particular graphics mode is reached, then using course scrolling to move the
+display list to point to the next byte in memory while simultaneously
+resetting the fine scrolling register back to its starting point. Vertically,
+the size limit is the height in scan lines of the mode, and horizontally is
+the number of color clocks wide.
+
+.. seealso::
+
+ * `De Re Atari, Chapter 6 <https://www.atariarchives.org/dere/chapt06.php>`_
+ * Mapping the Atari: `HSCROL <https://www.atariarchives.org/mapping/memorymap.php#54276>`_ and `VSCROL <https://www.atariarchives.org/mapping/memorymap.php#54277>`_
+ * my (forthcoming) tutorial :ref:`Crash Course on Fine Scrolling <scrolling_tutorial>`
+
+#6: Parallax Scrolling
+------------------------------------------------------------------
+
+The "Moon Patrol" effect is actually very straightforward on the Atari, since
+splitting up the screen vertically is among the strengths of ANTIC.
+
+.. figure:: parallax_scrolling.png
+   :align: center
+   :width: 90%
+
+.. raw:: html
+
+   <ul>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/src/parallax_scrolling.s">parallax_scrolling.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/xex/parallax_scrolling.xex">parallax_scrolling.xex</a></li>
+   </ul>
+
+This effect does require a DLI because the ``HSCROL`` value is stored in an
+ANTIC hardware register and remains in effect until changed. It is nominally
+for full-screen scrolling, but since ANTIC has no memory of what it has done
+in the past, there is every reason to use the capability and modify it in the
+middle of the screen. The DLI is extremely simple, it just changes ``HSCROL``
+to a previously-computed value at for band:
+
+.. code-block::
+
+   ; same DLI routine is used for each band, the band_dli_index is used to;
+   ; determine which band we're in
+   dli_band
+           pha             ; using A & X
+           txa
+           pha
+           inc band_dli_index ; increment band index, VBI initialized to $ff,
+           ldx band_dli_index ;   so will be 0 for band B (band A doesn't scroll!)
+   
+           lda band_hscrol,x ; change HSCROL for this band
+           sta HSCROL
+   
+   ?done   pla             ; restore A & X
+           tax
+           pla
+           rti             ; always end DLI with RTI!
+
+The calculation of each band's ``HSCROL`` value is performed in the VBI.
+
+.. code-block::
+
+   ; calculate new scrolling positions of bands
+   vbi     ldx #2
+   ?move   lda band_hscrol_frac,x  ; update scrolling position fraction
+           clc                     ;   by adding velocity fraction.
+           adc band_hscrol_frac_delta,x
+           sta band_hscrol_frac,x
+           lda band_hscrol,x       ; update scrolling position whole number
+           adc #0
+           sta band_hscrol,x
+           cmp #4          ; 4 color clocks in Antic 4; check if need a course
+           bcc ?nope       ;   scroll
+   
+           ; course scroll needed, chech which region
+           cpx #0
+           bne ?ckb
+           jsr course_scroll_b
+           bcc ?next       ; CLC in subroutine to allow branch
+   
+   ?ckb    cpx #1
+           bne ?chc
+           jsr course_scroll_c
+           bcc ?next       ; CLC in subroutine to allow branch
+   
+   ?chc    jsr course_scroll_d
+   
+   ?next   lda #0          ; reset HSCROL for this band
+           sta band_hscrol,x
+   
+   ?nope   dex
+           bpl ?move
+   
+           lda #$ff        ; initialize band index to get ready for the first
+           sta band_dli_index ;   DLI which affects band B
+   
+           lda #0          ; always reset HSCROL to zero for top of new screen
+           sta HSCROL
+   
+           jmp XITVBV      ; always exit deferred VBI with jump here
+
+For this demo, band C is running two times faster than band B, and band D is
+running two times faster than band C. To allow some future speed modification
+and to prevent the demo from running too fast, it is actually operating on two-
+byte, fixed-point math: fractions of an ``HSCROL`` value. Every VBI, the low
+byte (representing the fraction out of 256) changes by 32, 64, or 128
+depending on the band (B, C, and D, respectively), and when the low byte
+overflows, the high byte (and therefore ``HSCROL``) is updated.
+
+
+Examples Yet To Be Written
+----------------------------
+
+
 #n: Multicolor Player With Movement
 -------------------------------------------------------
 
@@ -1553,51 +1687,6 @@ happened in this band.
 If the knowledge of the band is not important, you can just check the
 collision registers in the vertical blank, which will report if there have
 been any collisions with anything in any band.
-
-<example goes here>
-
-
-Interlude: Scrolling
---------------------------------
-
-.. note:: In a mashup of *The Princess Bride*, Pierre Fermat, and random rhyming: I was going to explain, but there is too much so I'll refrain because this margin is too small to contain, and restrain my writing here to only the most germane. Rather than a hurricane, I will constrain this topic here to an ad campaign, and daisy chain to a separate tutorial that I will maintain to entertain and in detail ascertain the scrolling picture plane. In other words, see my (forthcoming) :ref:`Crash Course on Fine Scrolling <scrolling_tutorial>`.
-
-Display lists provide the ability to easily perform course scrolling without
-moving any display memory around. Instead, the visible display can be adjusted
-to provide scrolling at byte resolution by adjusting the address pointed to by
-any LMS instructions in the display list. The amount of graphical detail in a
-byte depends on the graphics mode: character modes by definition are one
-character per byte so the course scrolling limits are a single character
-vertically or horizontally. Bitmap modes can be 1 to 8 scan lines tall per
-byte, and 4 or 8 color clocks wide per byte.
-
-The Fine scrolling hardware registers provide the bridge between byte size and
-scan lines (vertically) or color clocks (horizontally; and note that a color
-clock in the smallest unit for horizontal scrolling, even in mode F).
-Vertically the ``VSCROL`` hardware register allows fine scrolling up to 16
-scan lines, and horizontally the ``HSCROL`` register provides up to 16 color
-clocks fine scrolling.
-
-Continuous fine scrolling requires the use of both fine scrolling and course
-scrolling techniques, with the fine scrolling used until the size limit of the
-particular graphics mode is reached, then using course scrolling to move the
-display list to point to the next byte in memory while simultaneously
-resetting the fine scrolling register back to its starting point. Vertically,
-the size limit is the height in scan lines of the mode, and horizontally is
-the number of color clocks wide.
-
-.. seealso::
-
- * `De Re Atari, Chapter 6 <https://www.atariarchives.org/dere/chapt06.php>`_
- * Mapping the Atari: `HSCROL <https://www.atariarchives.org/mapping/memorymap.php#54276>`_ and `VSCROL <https://www.atariarchives.org/mapping/memorymap.php#54277>`_
- * my (forthcoming) tutorial :ref:`Crash Course on Fine Scrolling <scrolling_tutorial>`
-
-#n: Parallax Scrolling
-------------------------------------------------------------------
-
-The "Moon Patrol" effect is actually very straightforward on the Atari, since
-splitting up the screen vertically is among the strengths of ANTIC.
-
 
 <example goes here>
 
