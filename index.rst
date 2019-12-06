@@ -1608,6 +1608,48 @@ been any collisions with anything in any band.
 Interlude: Scrolling
 --------------------------------
 
+.. note:: In a mashup of *The Princess Bride*, Pierre Fermat, and random rhyming: I was going to explain, but there is too much so I'll refrain because this margin is too small to contain, and restrain my writing here to only the most germane. Rather than a hurricane, I will constrain this topic here to an ad campaign, and daisy chain to a separate tutorial that I will maintain to entertain and in detail ascertain the scrolling picture plane. In other words, see my (forthcoming) :ref:`Crash Course on Fine Scrolling <scrolling_tutorial>`.
+
+Display lists provide the ability to easily perform course scrolling without
+moving any display memory around. Instead, the visible display can be adjusted
+to provide scrolling at byte resolution by adjusting the address pointed to by
+any LMS instructions in the display list. The amount of graphical detail in a
+byte depends on the graphics mode: character modes by definition are one
+character per byte so the course scrolling limits are a single character
+vertically or horizontally. Bitmap modes can be 1 to 8 scan lines tall per
+byte, and 4 or 8 color clocks wide per byte.
+
+The Fine scrolling hardware registers provide the bridge between byte size and
+scan lines (vertically) or color clocks (horizontally; and note that a color
+clock in the smallest unit for horizontal scrolling, even in mode F).
+Vertically the ``VSCROL`` hardware register allows fine scrolling up to 16
+scan lines, and horizontally the ``HSCROL`` register provides up to 16 color
+clocks fine scrolling.
+
+Continuous fine scrolling requires the use of both fine scrolling and course
+scrolling techniques, with the fine scrolling used until the size limit of the
+particular graphics mode is reached, then using course scrolling to move the
+display list to point to the next byte in memory while simultaneously
+resetting the fine scrolling register back to its starting point. Vertically,
+the size limit is the height in scan lines of the mode, and horizontally is
+the number of color clocks wide.
+
+.. seealso::
+
+ * `De Re Atari, Chapter 6 <https://www.atariarchives.org/dere/chapt06.php>`_
+ * Mapping the Atari: `HSCROL <https://www.atariarchives.org/mapping/memorymap.php#54276>`_ and `VSCROL <https://www.atariarchives.org/mapping/memorymap.php#54277>`_
+ * my (forthcoming) tutorial :ref:`Crash Course on Fine Scrolling <scrolling_tutorial>`
+
+#n: Parallax Scrolling
+------------------------------------------------------------------
+
+The "Moon Patrol" effect is actually very straightforward on the Atari, since
+splitting up the screen vertically is among the strengths of ANTIC.
+
+
+<example goes here>
+
+
 
 #n: Multiple Scrolling Regions
 ------------------------------------------------------------------
