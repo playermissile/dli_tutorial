@@ -156,36 +156,38 @@ fillscreen_scroll
         bne ?loop
         rts
 
-; one page per line, used for horizontal scrolling
+; one page per line, used for horizontal scrolling. Start visible region
+; in middle of each page so it can scroll either right or left immediately
+; without having to check for a border
 dlist_parallax_mode4
         .byte $70,$70,$70       ; region A: no scrolling
-        .byte $54,$00,$80
-        .byte $54,$00,$81
-        .byte $54,$00,$82
-        .byte $54,$00,$83
-        .byte $54,$00,$84
-        .byte $54,$00,$85
-        .byte $54,$00,$86
-        .byte $54,$00,$87
-        .byte $54,$00,$88
-        .byte $d4,$00,$89
+        .byte $54,$70,$80
+        .byte $54,$70,$81
+        .byte $54,$70,$82
+        .byte $54,$70,$83
+        .byte $54,$70,$84
+        .byte $54,$70,$85
+        .byte $54,$70,$86
+        .byte $54,$70,$87
+        .byte $54,$70,$88
+        .byte $d4,$70,$89
 dlist_parallax_region_b
-        .byte $54,$00,$8a       ; region B: 1/4 as much scrolling as D
-        .byte $d4,$00,$8b
+        .byte $54,$70,$8a       ; region B: 1/4 as much scrolling as D
+        .byte $d4,$70,$8b
 dlist_parallax_region_c
-        .byte $54,$00,$8c       ; region C: 1/2 as much scrolling as D
-        .byte $54,$00,$8d
-        .byte $54,$00,$8e
-        .byte $d4,$00,$8f
+        .byte $54,$70,$8c       ; region C: 1/2 as much scrolling as D
+        .byte $54,$70,$8d
+        .byte $54,$70,$8e
+        .byte $d4,$70,$8f
 dlist_parallax_region_d
-        .byte $54,$00,$90       ; region D: all the scrolling
-        .byte $54,$00,$91
-        .byte $54,$00,$92
-        .byte $54,$00,$93
-        .byte $54,$00,$94
-        .byte $54,$00,$95
-        .byte $54,$00,$96
-        .byte $54,$00,$97
+        .byte $54,$70,$90       ; region D: all the scrolling
+        .byte $54,$70,$91
+        .byte $54,$70,$92
+        .byte $54,$70,$93
+        .byte $54,$70,$94
+        .byte $54,$70,$95
+        .byte $54,$70,$96
+        .byte $54,$70,$97
         .byte $41,<dlist_parallax_mode4,>dlist_parallax_mode4
 
 dlist_parallax_mode4_row1_offset

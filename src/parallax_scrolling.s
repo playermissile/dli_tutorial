@@ -94,28 +94,28 @@ vbi     ldx #2
         jmp XITVBV      ; always exit deferred VBI with jump here
 
 course_scroll_b
-        inc dlist_parallax_region_b+1
-        inc dlist_parallax_region_b+4
+        dec dlist_parallax_region_b+1
+        dec dlist_parallax_region_b+4
         clc
         rts
 
 course_scroll_c
-        inc dlist_parallax_region_c+1
-        inc dlist_parallax_region_c+4
-        inc dlist_parallax_region_c+7
-        inc dlist_parallax_region_c+10
+        dec dlist_parallax_region_c+1
+        dec dlist_parallax_region_c+4
+        dec dlist_parallax_region_c+7
+        dec dlist_parallax_region_c+10
         clc
         rts
 
 course_scroll_d
-        inc dlist_parallax_region_d+1
-        inc dlist_parallax_region_d+4
-        inc dlist_parallax_region_d+7
-        inc dlist_parallax_region_d+10
-        inc dlist_parallax_region_d+13
-        inc dlist_parallax_region_d+16
-        inc dlist_parallax_region_d+19
-        inc dlist_parallax_region_d+22
+        dec dlist_parallax_region_d+1
+        dec dlist_parallax_region_d+4
+        dec dlist_parallax_region_d+7
+        dec dlist_parallax_region_d+10
+        dec dlist_parallax_region_d+13
+        dec dlist_parallax_region_d+16
+        dec dlist_parallax_region_d+19
+        dec dlist_parallax_region_d+22
         clc
         rts
 
