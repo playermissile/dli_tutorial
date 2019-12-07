@@ -12,6 +12,9 @@ init_screen_parallax
         lda #>dlist_parallax_mode4
         sta SDLSTL+1
         jsr fillscreen_parallax
+        lda #$80
+        ldx #24
+        jsr label_pages
         rts
 
 ;
@@ -54,6 +57,62 @@ fillscreen_parallax
         bne ?loop
         rts
 
+;
+; label pages with hex string addresses every 16 bytes
+; args: start page number in A
+;       number of pages in X
+;
+label_pages
+        sta ?smc1+2
+?outer  sta ?smc2+2
+        sta ?smc3+2
+        sta ?smc4+2
+        ldy #0
+?inner  lda ?smc1+2      ; high byte
+        pha
+        and #$f0        ; high nibble
+        lsr a
+        lsr a
+        lsr a
+        lsr a
+        jsr get_digit
+?smc1   sta $ff00,y
+        pla             ; low nibble
+        and #$0f
+        jsr get_digit
+?smc2   sta $ff01,y
+        tya             ; low byte
+        and #$f0        ; high nibble
+        lsr a
+        lsr a
+        lsr a
+        lsr a
+        jsr get_digit
+?smc3   sta $ff02,y
+        tya
+        and #$0f
+        jsr get_digit
+?smc4   sta $ff03,y
+
+        tya
+        clc
+        adc #$10
+        tay
+        bne ?inner
+        
+        dex
+        beq ?exit
+        inc ?smc1+2
+        lda ?smc1+2
+        bne ?outer
+?exit   rts
+
+get_digit
+        cmp #10
+        bcc ?digit
+        adc #6
+?digit  adc #$10
+        rts
 
 ;
 ; fill 32 pages with test pattern
