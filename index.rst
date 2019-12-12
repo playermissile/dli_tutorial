@@ -3,32 +3,31 @@
 .. highlight:: ca65
 
 
-A Crash Course on Advanced DLIs
-=================================================================
+Atari 8-bit Display List Interrupts: A Complete(ish) Tutorial
+======================================================================
 
-.. centered:: **Atari 8-bit Display List Interrupts: An Advanced Tutorial**
+**Revision 4, updated 12 Dec 2019**
 
-**Revision 3, updated 6 Dec 2019**
+This is a tutorial on Display List Interrupts (DLIs) for the Atari 8-bit series
+of computers. In a nutshell, DLIs provide a way to notify your program when a
+particular scan line is reached, allowing you to make changes mid-screen.
 
-This is a tutorial on advanced Display List Interrupts (DLIs) for the Atari
-8-bit series of computers. In a nutshell, DLIs provide a way to notify your
-program when a particular scan line is reached, allowing you to make changes
-mid-screen.
-
+No prior knowledge of DLIs is necessary before reading this tutorial. However,
 DLIs are an advanced programming technique in the sense that they require
 knowledge of 6502 assembly language, so this tutorial is going to assume that
-you are comfortable with that. All the examples here are assembled using the
-MAC/65-compatible assembler `ATasm
-<https://atari.miribilist.com/atasm/index.html>`_ (and more specifically to
-this tutorial, the version built-in to `Omnivore <https://github.com/robmcmullen/omnivore>`_).
+you are comfortable with that.
+
+All the examples here are assembled using the MAC/65-compatible assembler
+`ATasm <https://atari.miribilist.com/atasm/index.html>`_ (and more specifically
+to this tutorial, the version built-in to `Omnivore <https://github.com/robmcmullen/omnivore>`_).
 
 .. note:: All source code and XEX files are available in the `dli_tutorial source code repository <https://github.com/playermissile/dli_tutorial>`_ on github.
 
 Before diving into DLIs, it is helpful to understand that they are very
 accurately named: Display List Interrupts literally interrupt the display list
--- they cause an event that is processed by your program while the ANTIC is
-drawing the screen. So it is necessary to understand what display lists are
-before understanding what it means to interrupt one.
+-- they cause an event that is processed by your program as the computer is in
+the middle of drawing the screen. So it is necessary to understand what display
+lists are before understanding what it means to interrupt one, and even before that we must understand how the Atari uses the display list to generate the images shown on the screen.
 
 .. seealso::
 
@@ -38,8 +37,8 @@ before understanding what it means to interrupt one.
    * `Yaron Nir's tutorial using cc65 <https://atariage.com/forums/topic/291991-cc65-writing-a-dli-tutorial/>`_
 
 
-A Crash Course on Displays
---------------------------------
+Displays: A Tiny Overview of How TVs Work
+--------------------------------------------------------
 
 A TV screen is drawn by an electron beam tracing a path starting above the
 visible area, and drawing successive horizontal lines as the beam moves down
@@ -105,8 +104,8 @@ tolerances to be displayed.
    * Discussion on NTSC pixel clocks and timing at `retrocomputing.stackexchange.com <https://retrocomputing.stackexchange.com/a/2206/6847>`_
 
 
-A Crash Course on Display Lists
---------------------------------
+Display Lists: How the Atari Generates the Display
+---------------------------------------------------------------
 
 ANTIC is the special coprocessor that handles screen drawing for the Atari
 computers. It is tightly coupled with the 6502 processor, and in fact can be
@@ -317,8 +316,9 @@ Restrictions
  * display list data cannot cross a 4k boundary, so you must use a display list command with the ``LMS`` bit if using a bitmapped display mode that will result in a larger memory usage
 
 
+.. _dli_crash_course:
 
-A Crash Course on Display List Interrupts
+Display List Interrupts: A Crash Course
 ---------------------------------------------
 
 DLIs are non-maskable interrupts (NMIs), meaning they cannot be ignored. When
@@ -436,8 +436,11 @@ correct values for the top of the screen.
     CHBAS, 2f4, CHBASE, d409, Character base (page number of font)
 
 
-A Simple Example
-~~~~~~~~~~~~~~~~~~~~~
+Basic Display List Interrupts
+--------------------------------------
+
+Our First Display List
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A common use of display lists is to change colors in the middle of the
 screen.
@@ -467,8 +470,7 @@ This is all the code it takes to change the color of the background. The
 obvious effect is the flickering line in the background, which we will solve
 in the next section.
 
-Examining the code shows the boilerplate discussed `above <A Crash Course on
-Display List Interrupts_>`_ where DLIs always end with the ``RTI`` instruction
+Examining the code shows the boilerplate discussed :ref:`above <dli_crash_course>` where DLIs always end with the ``RTI`` instruction
 and any registers used must be saved before your code changes them, and
 restored upon exit.
 
@@ -479,8 +481,8 @@ hardware registers must be used in DLIs, not the shadow registers as shadow
 registers are ignored until the vertical blank.
 
 
-A Simple Example with WSYNC
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+WSYNC: How to Avoid Flickering
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The Atari provides a way to sync with a scan line to avoid the flickering effect
 of the previous example.
@@ -578,7 +580,7 @@ ANTIC mode 4.
            rti             ; always end DLI with RTI!
 
 
-A Crash Course on Display List Interrupts Getting Interrupted
+Display List Interrupts Getting Interrupted
 -----------------------------------------------------------------
 
 Because DLIs are non-maskable interrupts and NMIs can't be blocked, a DLI will
