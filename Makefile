@@ -1,6 +1,20 @@
 DEST = xex/
 SRC = src/
-BINS = xex/sample_display_list.xex xex/first_dli.xex xex/first_dli_with_wsync.xex xex/rainbow_wsync.xex xex/dli_interrupting_dli.xex xex/vbi_interrupting_dli.xex xex/multiple_dli_same_page.xex xex/simple_multiplex_player.xex xex/simple_multiplex_player_no_wsync.xex xex/moving_dli.xex xex/multiplex_player_movement.xex xex/horizontal_multiplex_player.xex xex/background_color_kernel.xex xex/parallax_scrolling.xex
+BINS = xex/sample_display_list.xex \
+	xex/first_dli.xex \
+	xex/first_dli_with_wsync.xex \
+	xex/rainbow_wsync.xex \
+	xex/dli_interrupting_dli.xex \
+	xex/dli_interrupting_vbi.xex \
+	xex/vbi_interrupting_dli.xex \
+	xex/multiple_dli_same_page.xex \
+	xex/simple_multiplex_player.xex \
+	xex/simple_multiplex_player_no_wsync.xex \
+	xex/moving_dli.xex \
+	xex/multiplex_player_movement.xex \
+	xex/horizontal_multiplex_player.xex \
+	xex/background_color_kernel.xex \
+	xex/parallax_scrolling.xex
 
 .PHONY: png
 
@@ -27,6 +41,9 @@ xex/dli_interrupting_dli.xex: src/dli_interrupting_dli.s src/util.s src/util_dli
 	atasm -mae -Isrc -o$@ -L$<.var -g$<.lst $<
 
 xex/vbi_interrupting_dli.xex: src/vbi_interrupting_dli.s src/util.s src/util_dli.s src/util_vbi.s
+	atasm -mae -Isrc -o$@ -L$<.var -g$<.lst $<
+
+xex/dli_interrupting_vbi.xex: src/dli_interrupting_vbi.s src/util.s src/util_dli.s src/util_vbi.s
 	atasm -mae -Isrc -o$@ -L$<.var -g$<.lst $<
 
 xex/multiple_dli_same_page.xex: src/multiple_dli_same_page.s src/util.s src/util_dli.s src/util_vbi.s

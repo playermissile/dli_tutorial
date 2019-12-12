@@ -586,6 +586,7 @@ interrupt whatever is happening, including another DLI. To summarize:
 
  * DLIs can be interrupted by other DLIs
  * DLIs can be interrupted by the vertical blank
+ * The vertical blank can be interrupted by a DLI
  * a DLI on a JVB instruction will cause interrupts on every scan line until the vertical blank
 
 DLI Interrupting Another DLI
@@ -763,7 +764,7 @@ differences.
 VBI Interrupting A DLI
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For completeness, here is an example of the vertical blank interrupting a DLI.
+Here is an example of the vertical blank interrupting a DLI.
 
 .. figure:: vbi_interrupting_dli.png
    :align: center
@@ -782,6 +783,41 @@ and picks up again when VBI ends. Even though the electron beam is turned off,
 is off screen. The resulting image resumes its color cycling background on the
 top of the screen, stopping after 128 scan lines even though only a fraction
 of those are actually visible on screen.
+
+
+DLI Interrupting A VLI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+And for completeness, here is an example of a DLI interrupting the vertical blank.
+
+.. figure:: dli_interrupting_vbi.png
+   :align: center
+   :width: 90%
+
+.. raw:: html
+
+   <ul>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/src/dli_interrupting_vbi.s">dli_interrupting_vbi.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/xex/dli_interrupting_vbi.xex">dli_interrupting_vbi.xex</a></li>
+   </ul>
+
+Under typical circumstances, a vertical blank routine would have to be quite
+long *and* the DLI is set very early in the display list before it would become
+likely that the vertical blank routine would be interrupted by the DLI.
+
+In this example, this DLI is set on the final blank line of the display list,
+so the vertical blank has run from scan lines 248 through 262 on one frame, and
+through 23 scan lines of the following frame before getting interrupted by the
+DLI.
+
+To visualize the processing in the vertical blank, this example changes
+background color as fast as it can once the vertical blank starts, up to the
+100th scan line of the generated image. It gets interrupted on scan line 23 for
+the DLI.
+
+The DLI is one we've seen before, just changing background color with
+``WSYNC``. Once it has completed, it returns and the VBI routine picks up where
+it left off, changing background color as fast as it can.
 
 
 DLI on the JVB Instruction
