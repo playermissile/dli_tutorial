@@ -104,6 +104,8 @@ tolerances to be displayed.
    * Discussion on NTSC pixel clocks and timing at `retrocomputing.stackexchange.com <https://retrocomputing.stackexchange.com/a/2206/6847>`_
 
 
+.. _display_lists:
+
 Display Lists: How the Atari Generates the Display
 ---------------------------------------------------------------
 
@@ -1587,6 +1589,8 @@ the number of color clocks wide.
  * `De Re Atari, Chapter 6 <https://www.atariarchives.org/dere/chapt06.php>`_
  * Mapping the Atari: `HSCROL <https://www.atariarchives.org/mapping/memorymap.php#54276>`_ and `VSCROL <https://www.atariarchives.org/mapping/memorymap.php#54277>`_
  * my (forthcoming) tutorial :ref:`Crash Course on Fine Scrolling <scrolling_tutorial>`
+
+.. _parallax_scrolling:
 
 #6: Parallax Scrolling
 ------------------------------------------------------------------
