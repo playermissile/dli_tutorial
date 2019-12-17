@@ -100,7 +100,7 @@ tolerances to be displayed.
    * `NTSC Demystified <https://sagargv.blogspot.com/2011/04/ntsc-demystified-part-1-b-video-and.html>`_, (*haha*), a very long series of blog posts describing NTSC encoding
    * Obligatory link to the `NTSC article on Wikipedia <https://en.wikipedia.org/wiki/NTSC>`_
    * `Composite artifact colors <https://en.wikipedia.org/wiki/Composite_artifact_colors>`_ article on Wikipedia
-   * Section 4.2 in the `Altirra Hardware Reference Manual <http://www.virtualdub.org/downloads/Altirra%20Hardware%20Reference%20Manual.pdf>`_ for much more technical detail and far, far less hand-waving.
+   * Section 4.2 in the `Altirra Hardware Reference Manual (PDF)<http://www.virtualdub.org/downloads/Altirra%20Hardware%20Reference%20Manual.pdf>`_ for much more technical detail and far, far less hand-waving.
    * Discussion on NTSC pixel clocks and timing at `retrocomputing.stackexchange.com <https://retrocomputing.stackexchange.com/a/2206/6847>`_
 
 
@@ -306,7 +306,7 @@ subsequent lines!
 .. seealso::
 
    Section 4.14 in the
-   `Altirra Hardware Reference Manual <http://www.virtualdub.org/downloads/Altirra%20Hardware%20Reference%20Manual.pdf>`_
+   `Altirra Hardware Reference Manual (PDF)<http://www.virtualdub.org/downloads/Altirra%20Hardware%20Reference%20Manual.pdf>`_
    contains tables depicting exactly which cycles are stolen by ANTIC for
    each mode.
 
@@ -1588,7 +1588,7 @@ the number of color clocks wide.
 
  * `De Re Atari, Chapter 6 <https://www.atariarchives.org/dere/chapt06.php>`_
  * Mapping the Atari: `HSCROL <https://www.atariarchives.org/mapping/memorymap.php#54276>`_ and `VSCROL <https://www.atariarchives.org/mapping/memorymap.php#54277>`_
- * my (forthcoming) tutorial :ref:`Crash Course on Fine Scrolling <scrolling_tutorial>`
+ * my own :ref:`Fine Scrolling: A Complete(ish) Tutorial <scrolling_tutorial>`
 
 .. _parallax_scrolling:
 
