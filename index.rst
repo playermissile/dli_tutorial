@@ -100,7 +100,7 @@ tolerances to be displayed.
    * `NTSC Demystified <https://sagargv.blogspot.com/2011/04/ntsc-demystified-part-1-b-video-and.html>`_, (*haha*), a very long series of blog posts describing NTSC encoding
    * Obligatory link to the `NTSC article on Wikipedia <https://en.wikipedia.org/wiki/NTSC>`_
    * `Composite artifact colors <https://en.wikipedia.org/wiki/Composite_artifact_colors>`_ article on Wikipedia
-   * Section 4.2 in the `Altirra Hardware Reference Manual (PDF)<http://www.virtualdub.org/downloads/Altirra%20Hardware%20Reference%20Manual.pdf>`_ for much more technical detail and far, far less hand-waving.
+   * Section 4.2 in the `Altirra Hardware Reference Manual (PDF) <http://www.virtualdub.org/downloads/Altirra%20Hardware%20Reference%20Manual.pdf>`_ for much more technical detail and far, far less hand-waving.
    * Discussion on NTSC pixel clocks and timing at `retrocomputing.stackexchange.com <https://retrocomputing.stackexchange.com/a/2206/6847>`_
 
 
@@ -912,9 +912,13 @@ assemblers.
 
 To get a copy of all the examples and source code, you can download and
 install `git <https://git-scm.com/>`_ for your platform. Then open a command
-line prompt on your computer and enter the command: ``git clone
-https://github.com/playermissile/dli_tutorial.git`` to download the complete
-repository.
+line prompt on your computer and enter the command:
+
+.. code-block:: bash
+
+   git clone https://github.com/playermissile/dli_tutorial.git
+
+to download the complete repository.
 
 You can also download individual assembly source and XEX files from links in
 each section.
@@ -925,7 +929,14 @@ libraries that are included during the compilation process. These are files
 like ``util.s``, ``util_dli.s`` and so forth, and are available in the source code repository or directly `here <https://github.com/playermissile/dli_tutorial/src>`_.
 
 
-#1: Multiple DLIs
+Topic #1: DLI Positioning
+----------------------------------
+
+The following examples deal with various techniques regarding placing the DLI
+on screen.
+
+
+#1.1: Multiple DLIs
 ------------------------------------------------------------
 
 .. figure:: multiple_dli_same_page.png
@@ -985,7 +996,7 @@ useful.
 
 .. _moving_dli:
 
-#2: Moving the DLI Up and Down the Screen
+#1.2: Moving the DLI Up and Down the Screen
 ------------------------------------------------------------
 
 The DLI subroutine itself doesn't directly know what scan line caused the
@@ -1032,8 +1043,43 @@ display, and on the last mode 4 line in the display list which displays the
 background below the last mode 4 line on the screen.
 
 
-Interlude: A Player/Missile Graphics Refresher
---------------------------------------------------
+.. _topic_chbase:
+
+Topic #2: Character Sets
+------------------------------------------
+
+DLIs can change the character set based on the vertical position.
+
+.. _changing_chbase:
+
+#2.x: Changing Character Sets
+------------------------------------------------------------
+
+An extremely simple DLI is all that's needed to change the character set at a
+particular scan line.
+
+
+<example goes here>
+
+
+#2.x: Lower Case & Upper Case for Graphics 1 & 2
+------------------------------------------------------------
+
+Normally, upper and lower case are not available together in ANTIC modes 6 and
+7 (BASIC modes 1 and 2) because the character set is broken up into 64
+character groups in order to have the extra bits needed to make them available
+in 5 colors.
+
+DLIs can work around this limitation to some extent, although it isn't possible
+to have the two sets of 64 characters on the same mode line.
+
+
+<example goes here>
+
+
+
+Topic #3: Player/Missile Graphics
+---------------------------------------------
 
 Player/Missile Graphics is the sprite system provided by the GTIA:
 independently positioned overlays on the playfield graphics that don't disturb
@@ -1063,7 +1109,7 @@ The quick summary for our purposes is that horizontal repositioning of players
 is fast, it takes only a single store instruction. Vertical repositioning of
 player image data is slow, it requires copying memory around.
 
-#3: Multiplexing Players Vertically
+#3.1: Multiplexing Players Vertically
 ----------------------------------------------------------------
 
 Reusing players (multiplexing) vertically is straightforward, meaning that a
@@ -1215,7 +1261,7 @@ make sure a player isn't split across a band boundary or, as described above,
 even duplicating a line of the player or missing a scan line.
 
 
-#4: Multiplexing With Horizontal Motion
+#3.2: Multiplexing With Horizontal Motion
 ----------------------------------------------------------
 
 Increasing the number of bands and adding independent player movement within
@@ -1331,7 +1377,7 @@ The colors are not the same as band L, however, because of the use of the
 shadow registers to set the initial color in the ``init_pmg`` subroutine.
 
 
-#5: Multiplexing Players Horizontally
+#3.3: Multiplexing Players Horizontally
 ----------------------------------------------------------------
 
 Reusing players on the same scan line is possible, but without some extremely
@@ -1433,14 +1479,46 @@ The takeaways here:
  * the author may revisit this technique at some point, but for now will leave further exploration to the reader, assuming the reader is much more patient regarding cycle counting than the author.
 
 
-Interlude: Kernels
+
+#3.x: Multiplexing with Arbitrary Motion
 -------------------------------------------------------
 
-The concept of a kernel comes from Atari 2600 programming, where the
-programmer had to build the screen line-by-line, because the 2600 did not have
-enough memory to store an entire frame. It had a line buffer, rather than a
-frame buffer, so to create a graphic image with any vertical detail, the code
-must change graphic information as the electron beam moves down the screen.
+Vertical movement within bands requires the moving memory around the
+player/missile graphics area (pointed to by ``PMBASE``) as in normal usage,
+with the following limitations:
+
+ * players must stay within their assigned band, otherwise they will get split across bands when the DLI occurs.
+ * players should avoid the first few scan lines below the top of the band boundary to prevent splitting
+ * when moving a player vertically within a band, only erase data from that band to prevent affecting the multiplexed players in other bands
+
+<example goes here>
+
+#3.x: Multiplexing With Collision Detection
+---------------------------------------------------------------
+
+If it is important to tell in which band a has collided occurred, the DLI that
+starts a new band will be required to save the collision status registers,
+which will determine if a collision happened in the *previous* band. It will
+then reset the collision registers so the following DLI can check what
+happened in this band.
+
+If the knowledge of the band is not important, you can just check the
+collision registers in the vertical blank, which will report if there have
+been any collisions with anything in any band.
+
+<example goes here>
+
+
+
+
+Topic #4: Kernels
+-------------------------------------
+
+The concept of a kernel comes from Atari 2600 programming. The 2600 does not
+have enough memory to store an entire frame -- it has a line buffer, rather
+than a frame buffer. To create a graphic image with any vertical detail, the
+code must build the screen line-by-line, changing graphic information as the
+electron beam moves down the screen.
 
 Kernels for our purposes will be DLIs that take control for many scan lines to
 perform graphic operations that are not possible otherwise. We have seen
@@ -1450,9 +1528,19 @@ performed using a kernel, which (assuming the graphics mode is bitmapped
 rather than text) would have removed the restriction created by need for extra
 cycles near the ``RTI`` instruction.
 
-A simple kernel can be used to change the background color to split the screen
-horizontally. Having learned a lesson or two, the author is using a graphics
-mode for the following example, mode E (the 160x192, 4 color mode):
+Kernels are a very advanced topic. The Atari 8-bit computers are the direct
+successor to the 2600, and the ANTIC and GTIA were designed to automate common
+tasks that in the 2600 requires kernel programming. Because so much is possible
+without kernels, this tutorial is not going to spend much time with this topic.
+However, a few examples are presented here to give you an idea of how they
+work.
+
+#4.1: Background Color Change Within Scan Line
+--------------------------------------------------
+
+A simple kernel can be used to change the background color to "split" the
+screen horizontally. Having learned a lesson or two, the author is using a
+graphics mode for the following example, mode E (the 160x192, 4 color mode):
 
 .. figure:: background_color_kernel.png
    :align: center
@@ -1562,10 +1650,24 @@ in actual games, so the next section will look at a technique using a kernel
 that is in common use in games: the multicolor player.
 
 
-Interlude: Scrolling
---------------------------------
+#4.x: Multicolor Player
+-------------------------------------------------------
 
-.. note:: In a mashup of *The Princess Bride*, Pierre Fermat, and random rhyming: Let me explain! There is too much so let me sum up: I'll refrain because this margin is too small to contain, and restrain my writing here to only the most germane. Rather than a hurricane, I will constrain this topic here to an ad campaign, and daisy chain to a separate tutorial that I will maintain to entertain and in detail ascertain the scrolling picture plane. In other words, see my (forthcoming) :ref:`Crash Course on Fine Scrolling <scrolling_tutorial>`.
+We have seen DLIs being used to change player position, size, and color. Until
+now, these demos have been limited to particular vertical bands on screen.
+Changing player attributes at an arbitrary location on screen will require a
+kernel-style DLI.
+
+.. note:: Strictly speaking, this is not true. If players do not overlap vertically, or only a single player needs to have characteristics adjusted, a `moving DLI <moving_dli_>`_ technique could work.
+
+
+<example goes here>
+
+
+Topic #5: Scrolling
+-----------------------------------------
+
+.. note:: Scrolling is a large topic; so large, in fact, that I wrote an :ref:`additional tutorial <scrolling_tutorial>`about it!
 
 Display lists provide the ability to easily perform course scrolling without
 moving any display memory around. Instead, the visible display can be adjusted
@@ -1599,7 +1701,7 @@ the number of color clocks wide.
 
 .. _parallax_scrolling:
 
-#6: Parallax Scrolling
+#5.1: Parallax Scrolling
 ------------------------------------------------------------------
 
 The "Moon Patrol" effect is actually very straightforward on the Atari, since
@@ -1694,54 +1796,7 @@ depending on the band (B, C, and D, respectively), and when the low byte
 overflows, the high byte (and therefore ``HSCROL``) is updated.
 
 
-Examples Yet To Be Written
-----------------------------
-
-
-#n: Multicolor Player With Movement
--------------------------------------------------------
-
-We have seen DLIs being used to change player position, size, and color. Until
-now, these demos have been limited to particular vertical bands on screen.
-Changing player attributes at an arbitrary location on screen will require a
-kernel-style DLI.
-
-.. note:: Strictly speaking, this is not true. If players do not overlap vertically, or only a single player needs to have characteristics adjusted, a `moving DLI <moving_dli_>`_ technique could work.
-
-
-<example goes here>
-
-#n: Multiplexing with Arbitrary Motion
--------------------------------------------------------
-
-Vertical movement within bands requires the moving memory around the
-player/missile graphics area (pointed to by ``PMBASE``) as in normal usage,
-with the following limitations:
-
- * players must stay within their assigned band, otherwise they will get split across bands when the DLI occurs.
- * players should avoid the first few scan lines below the top of the band boundary to prevent splitting
- * when moving a player vertically within a band, only erase data from that band to prevent affecting the multiplexed players in other bands
-
-<example goes here>
-
-#n: Multiplexing With Collision Detection
----------------------------------------------------------------
-
-If it is important to tell in which band a has collided occurred, the DLI that
-starts a new band will be required to save the collision status registers,
-which will determine if a collision happened in the *previous* band. It will
-then reset the collision registers so the following DLI can check what
-happened in this band.
-
-If the knowledge of the band is not important, you can just check the
-collision registers in the vertical blank, which will report if there have
-been any collisions with anything in any band.
-
-<example goes here>
-
-
-
-#n: Multiple Scrolling Regions
+#5.x: Multiple Scrolling Regions
 ------------------------------------------------------------------
 
 Splitting the screen vertically allows 2 (or more!) independent scrolling
