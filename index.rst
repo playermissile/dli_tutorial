@@ -805,14 +805,21 @@ And for completeness, here is an example of a DLI interrupting the vertical blan
    <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/xex/dli_interrupting_vbi.xex">dli_interrupting_vbi.xex</a></li>
    </ul>
 
-Under typical circumstances, a vertical blank routine would have to be quite
-long *and* the DLI is set very early in the display list before it would become
-likely that the vertical blank routine would be interrupted by the DLI.
+The vertical blank routine would have to be quite long *and* the DLI set very
+early in the display list before this would happen.
+
+.. note:: In my own game development, I have run into this effect happening intermittently, where occasionally the VBI runs very long due to some complicated game logic that happens only under certain conditions. It's something to be aware of.
 
 In this example, this DLI is set on the final blank line of the display list,
-so the vertical blank has run from scan lines 248 through 262 on one frame, and
-through 23 scan lines of the following frame before getting interrupted by the
-DLI.
+so the display list begins with these bytes:
+
+.. code-block::
+
+   .byte $70,$70,$f0
+
+triggering the DLI on scan line 24. The vertical blank has run from scan lines
+248 through 262 on one frame, and through 23 scan lines of the following frame
+before getting interrupted by the DLI.
 
 To visualize the processing in the vertical blank, this example changes
 background color as fast as it can once the vertical blank starts, up to the
