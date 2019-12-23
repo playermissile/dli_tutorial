@@ -1043,9 +1043,24 @@ display, and on the last mode 4 line in the display list which displays the
 background below the last mode 4 line on the screen.
 
 
+.. _topic_color:
+
+Topic #2: Colors
+------------------------------------------
+
+We have already seen several examples of using DLIs to show more colors on
+screen. The following examples are included to address more topics in common
+use in games or title screens.
+
+#2.x: Marching Rainbow Text
+------------------------------------------------------------
+
+<example goes here>
+
+
 .. _topic_chbase:
 
-Topic #2: Character Sets
+Topic #3: Character Sets
 ------------------------------------------
 
 The character set on the Atari is comprised of 128 glyphs, each of which is 8
@@ -1064,7 +1079,7 @@ the lower case letters and a few remaining graphic symbols.
 
 .. _changing_chbase:
 
-#2.1: Changing Character Sets
+#3.1: Changing Character Sets
 ------------------------------------------------------------
 
 An extremely simple DLI is all that's needed to change the character set at a
@@ -1125,7 +1140,7 @@ the hardware register ``CHBASE``:
 
 
 
-Topic #3: Player/Missile Graphics
+Topic #4: Player/Missile Graphics
 ---------------------------------------------
 
 Player/Missile Graphics is the sprite system provided by the GTIA:
@@ -1156,7 +1171,7 @@ The quick summary for our purposes is that horizontal repositioning of players
 is fast, it takes only a single store instruction. Vertical repositioning of
 player image data is slow, it requires copying memory around.
 
-#3.1: Multiplexing Players Vertically
+#4.1: Multiplexing Players Vertically
 ----------------------------------------------------------------
 
 Reusing players (multiplexing) vertically is straightforward, meaning that a
@@ -1308,7 +1323,7 @@ make sure a player isn't split across a band boundary or, as described above,
 even duplicating a line of the player or missing a scan line.
 
 
-#3.2: Multiplexing With Horizontal Motion
+#4.2: Multiplexing With Horizontal Motion
 ----------------------------------------------------------
 
 Increasing the number of bands and adding independent player movement within
@@ -1424,7 +1439,7 @@ The colors are not the same as band L, however, because of the use of the
 shadow registers to set the initial color in the ``init_pmg`` subroutine.
 
 
-#3.3: Multiplexing Players Horizontally
+#4.3: Multiplexing Players Horizontally
 ----------------------------------------------------------------
 
 Reusing players on the same scan line is possible, but without some extremely
@@ -1527,7 +1542,7 @@ The takeaways here:
 
 
 
-#3.x: Multiplexing with Arbitrary Motion
+#4.x: Multiplexing with Arbitrary Motion
 -------------------------------------------------------
 
 Vertical movement within bands requires the moving memory around the
@@ -1540,7 +1555,7 @@ with the following limitations:
 
 <example goes here>
 
-#3.x: Multiplexing With Collision Detection
+#4.x: Multiplexing With Collision Detection
 ---------------------------------------------------------------
 
 If it is important to tell in which band a has collided occurred, the DLI that
@@ -1558,7 +1573,7 @@ been any collisions with anything in any band.
 
 
 
-Topic #4: Kernels
+Topic #5: Kernels
 -------------------------------------
 
 The concept of a kernel comes from Atari 2600 programming. The 2600 does not
@@ -1582,7 +1597,7 @@ without kernels, this tutorial is not going to spend much time with this topic.
 However, a few examples are presented here to give you an idea of how they
 work.
 
-#4.1: Background Color Change Within Scan Line
+#5.1: Background Color Change Within Scan Line
 --------------------------------------------------
 
 A simple kernel can be used to change the background color to "split" the
@@ -1697,7 +1712,7 @@ in actual games, so the next section will look at a technique using a kernel
 that is in common use in games: the multicolor player.
 
 
-#4.x: Multicolor Player
+#5.x: Multicolor Player
 -------------------------------------------------------
 
 We have seen DLIs being used to change player position, size, and color. Until
@@ -1711,7 +1726,7 @@ kernel-style DLI.
 <example goes here>
 
 
-Topic #5: Scrolling
+Topic #6: Scrolling
 -----------------------------------------
 
 .. note:: Scrolling is a large topic; so large, in fact, that I wrote an :ref:`additional tutorial <scrolling_tutorial>`about it!
@@ -1748,7 +1763,7 @@ the number of color clocks wide.
 
 .. _parallax_scrolling:
 
-#5.1: Parallax Scrolling
+#6.1: Parallax Scrolling
 ------------------------------------------------------------------
 
 The "Moon Patrol" effect is actually very straightforward on the Atari, since
@@ -1843,7 +1858,7 @@ depending on the band (B, C, and D, respectively), and when the low byte
 overflows, the high byte (and therefore ``HSCROL``) is updated.
 
 
-#5.x: Multiple Scrolling Regions
+#6.x: Multiple Scrolling Regions
 ------------------------------------------------------------------
 
 Splitting the screen vertically allows 2 (or more!) independent scrolling
