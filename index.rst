@@ -1048,33 +1048,80 @@ background below the last mode 4 line on the screen.
 Topic #2: Character Sets
 ------------------------------------------
 
-DLIs can change the character set based on the vertical position.
+The character set on the Atari is comprised of 128 glyphs, each of which is 8
+bytes in size for a total of 1024 bytes for a complete font. The characters are
+defined in ANTIC font order, not ATASCII order, so the first 64 characters are
+the ATASCII characters 32 - 95 (symbols, numbers, and upper case letters), the
+next 32 are the graphic symbols on the control characters, and the final 32 are
+the lower case letters and a few remaining graphic symbols.
+
+.. seealso:: More resources about character sets are available:
+
+   * ``CHBAS`` in `Mapping the Atari <https://www.atariarchives.org/mapping/memorymap.php#756>`_
+   * ``CHBASE`` in `Mapping the Atari <https://www.atariarchives.org/mapping/memorymap.php#54281>`_
+   * `Mapping the Atari, Appendix 10 <https://www.atariarchives.org/mapping/appendix10.php>`_
+
 
 .. _changing_chbase:
 
-#2.x: Changing Character Sets
+#2.1: Changing Character Sets
 ------------------------------------------------------------
 
 An extremely simple DLI is all that's needed to change the character set at a
 particular scan line.
 
+.. figure:: simple_chbase.png
+   :align: center
+   :width: 90%
 
-<example goes here>
+.. raw:: html
 
+   <ul>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/src/simple_chbase.s">simple_chbase.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/xex/simple_chbase.xex">simple_chbase.xex</a></li>
+   </ul>
 
-#2.x: Lower Case & Upper Case for Graphics 1 & 2
-------------------------------------------------------------
+This example uses two character sets: the default character set at the top of
+the screen, and an character set designed for ANTIC 4 for the bottom. The
+screen is broken up into 3 bands, one set of 8 lines of ANTIC mode 2 and two
+sets each containing 8 lines of ANTIC mode 4. The top two bands have the normal
+character set (``CHBASE = $e000``) and the bottom band has a custom character
+set designed for the 5 color mode.
 
-Normally, upper and lower case are not available together in ANTIC modes 6 and
-7 (BASIC modes 1 and 2) because the character set is broken up into 64
-character groups in order to have the extra bits needed to make them available
-in 5 colors.
+The DLI is set on the 16th text line: the final line in the second band of 8
+lines so that the character set change affects the 3rd band of 8 lines:
 
-DLIs can work around this limitation to some extent, although it isn't possible
-to have the two sets of 64 characters on the same mode line.
+.. code-block::
 
+   ; mixed mode 2 and mode 4 display list
+   dlist_static
+           .byte $70,$70,$70
+           .byte $42,$00,$80
+           .byte 2,2,2,2,2,2,2     ; first band has 8 lines of mode 2
+           .byte 4,4,4,4,4,4,4,$84 ; 2nd band: 8 lines of mode 4 + DLI on last line
+           .byte 4,4,4,4,4,4,4,4   ; 3rd band: 8 lines of mode 4
+           .byte $41,<dlist_static,>dlist_static
 
-<example goes here>
+The font for the top of the screen is set during the ``init`` routine using the
+the shadow register ``CHBAS``, not the hardware register ``CHBASE``. It will be
+reloaded every vertical blank by the operating system:
+
+.. code-block::
+
+           lda #$e0
+           sta CHBAS
+
+The DLI is very simple, just loading the new character set, but this time using
+the hardware register ``CHBASE``:
+
+.. code-block::
+
+   dli     pha             ; only using A register, so save it to the stack
+           lda #>font_data ; page number of new font data
+           sta WSYNC       ; first WSYNC gets us to start of scan line we want
+           sta CHBASE      ; store to hardware register to affect change immediately
+           pla             ; restore A register from stack
+           rti             ; always end DLI with RTI!
 
 
 
