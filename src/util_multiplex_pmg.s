@@ -1,3 +1,5 @@
+; Written in 2019 by Rob McMullen, https://playermissile.com/dli_tutorial/
+; Copyright and related rights waived via CC0: https://creativecommons.org/publicdomain/zero/1.0/
 ; data structures for multiplexing players across DLIs
 ;
 ; The constant num_dli_bands must be declared before including this file!

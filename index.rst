@@ -2,6 +2,7 @@
 
 .. highlight:: ca65
 
+.. |copy|   unicode:: U+000A9 .. COPYRIGHT SIGN
 
 Atari 8-bit Display List Interrupts: A Complete(ish) Tutorial
 ======================================================================
@@ -22,6 +23,8 @@ All the examples here are assembled using the MAC/65-compatible assembler
 to this tutorial, the version built-in to `Omnivore <https://github.com/robmcmullen/omnivore>`_).
 
 .. note:: All source code and XEX files are available in the `dli_tutorial source code repository <https://github.com/playermissile/dli_tutorial>`_ on github.
+
+.. note:: This tutorial is Copyright |copy| 2019 and licensed under the `CC BY-SA 4.0 <https://creativecommons.org/licenses/by-sa/4.0/>`_, except for the *assembly language source code* (both in this tutorial and in the repository), which is placed in the public domain via `CC0 <https://creativecommons.org/publicdomain/zero/1.0/>`_.
 
 Before diving into DLIs, it is helpful to understand that they are very
 accurately named: Display List Interrupts literally interrupt the display list
