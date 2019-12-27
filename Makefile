@@ -14,7 +14,7 @@ BINS = xex/sample_display_list.xex \
 	xex/moving_dli.xex \
 	xex/simple_chbase.xex \
 	xex/multiplex_player_movement.xex \
-	xex/horizontal_multiplex_player.xex \
+	xex/reusing_player_horz.xex \
 	xex/background_color_kernel.xex \
 	xex/parallax_scrolling.xex
 
@@ -71,7 +71,7 @@ ex/simple_multiplex_player_no_wsync.xex: src/simple_multiplex_player_no_wsync.s 
 xex/multiplex_player_movement.xex: src/multiplex_player_movement.s src/util.s src/util_dli.s src/util_vbi.s src/util_pmg.s src/util_multiplex_pmg.s src/util_font.s src/font_data_antic4.s
 	atasm -mae -Isrc -o$@ $(DEBUG_FILES) $<
 
-xex/horizontal_multiplex_player.xex: src/horizontal_multiplex_player.s src/util.s src/util_dli.s src/util_vbi.s src/util_pmg.s src/util_multiplex_pmg.s src/util_font.s src/font_data_antic4.s
+xex/reusing_player_horz.xex: src/reusing_player_horz.s src/util.s src/util_dli.s src/util_vbi.s src/util_pmg.s src/util_multiplex_pmg.s src/util_font.s src/font_data_antic4.s
 	atasm -mae -Isrc -o$@ $(DEBUG_FILES) $<
 
 xex/background_color_kernel.xex: src/background_color_kernel.s src/util.s src/util_dli.s src/util_bitmap.s

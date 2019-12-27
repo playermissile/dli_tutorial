@@ -1527,15 +1527,15 @@ the Altirra Hardware Reference Manual) to determine how well it can be used for
 a particular graphics mode.
 
 
-.. figure:: horizontal_multiplex_player.png
+.. figure:: reusing_player_horz.png
    :align: center
    :width: 90%
 
 .. raw:: html
 
    <ul>
-   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/src/horizontal_multiplex_player.s">horizontal_multiplex_player.s</a></li>
-   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/xex/horizontal_multiplex_player.xex">horizontal_multiplex_player.xex</a></li>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/src/reusing_player_horz.s">reusing_player_horz.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/xex/reusing_player_horz.xex">reusing_player_horz.xex</a></li>
    </ul>
 
 Here's the DLI that produces the effect above, where player 3 has multiple
