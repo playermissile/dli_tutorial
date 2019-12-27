@@ -1517,13 +1517,14 @@ The colors are not the same as band L, however, because of the use of the
 shadow registers to set the initial color in the ``init_pmg`` subroutine.
 
 
-#4.3: Multiplexing Players Horizontally
+#4.3: Reusing Players Horizontally
 ----------------------------------------------------------------
 
-Reusing players on the same scan line is possible, but without some extremely
-complicated code, its usefulness may be limited to mostly static cases.
-
-.. note:: Aaaaand, ok. Yikes. I hope you like cycle counting and consulting the timing reference charts in the Altirra Hardware Reference Manual, because you will be busy.
+Reusing players on the same scan line is possible, but requires cycle counting
+and has limitations, especially in text modes. The complicated cycle stealing
+performed by ANTIC will require consulting timing reference charts (such as in
+the Altirra Hardware Reference Manual) to determine how well it can be used for
+a particular graphics mode.
 
 
 .. figure:: horizontal_multiplex_player.png
@@ -1539,7 +1540,7 @@ complicated code, its usefulness may be limited to mostly static cases.
 
 Here's the DLI that produces the effect above, where player 3 has multiple
 copies at the same vertical position. Again there are 12 vertical bands (this
-time ANTIC mode 5), where the one copy of player 3 is at the left side of the
+time ANTIC mode 5), where the first copy of player 3 is at the left side of the
 screen and the other 3 shift slowly to the left as it moves down bands in
 order to find the minimum possible horizontal shift between copies. This is
 not a kernel (see the next section for that), so the DLI bit is set on each of
