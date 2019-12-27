@@ -4,6 +4,7 @@ BINS = xex/sample_display_list.xex \
 	xex/first_dli.xex \
 	xex/first_dli_with_wsync.xex \
 	xex/rainbow_wsync.xex \
+	xex/marching_rainbow.xex \
 	xex/dli_interrupting_dli.xex \
 	xex/dli_interrupting_vbi.xex \
 	xex/vbi_interrupting_dli.xex \
@@ -39,6 +40,9 @@ xex/first_dli_with_wsync.xex: src/first_dli_with_wsync.s src/util.s src/util_dli
 	atasm -mae -Isrc -o$@ $(DEBUG_FILES) $<
 
 xex/rainbow_wsync.xex: src/rainbow_wsync.s src/util.s src/util_dli.s
+	atasm -mae -Isrc -o$@ $(DEBUG_FILES) $<
+
+xex/marching_rainbow.xex: src/marching_rainbow.s src/util.s src/util_dli.s
 	atasm -mae -Isrc -o$@ $(DEBUG_FILES) $<
 
 xex/dli_interrupting_dli.xex: src/dli_interrupting_dli.s src/util.s src/util_dli.s

@@ -7,7 +7,7 @@
 Atari 8-bit Display List Interrupts: A Complete(ish) Tutorial
 ======================================================================
 
-**Revision 6, updated 23 Dec 2019**
+**Revision 7, updated 26 Dec 2019**
 
 This is a tutorial on Display List Interrupts (DLIs) for the Atari 8-bit series
 of computers. In a nutshell, DLIs provide a way to notify your program when a
@@ -526,6 +526,8 @@ artifacts appearing on screen.
    about cycle 105 out of 114, but there are cases that can delay that. See the
    Altirra Hardware Reference Manual for more information.
 
+
+.. _rainbow_wsync:
 
 A DLI Can Affect Many Scan Lines
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1055,11 +1057,84 @@ We have already seen several examples of using DLIs to show more colors on
 screen. The following examples are included to address more topics in common
 use in games or title screens.
 
-#2.x: Marching Rainbow Text
+#2.1: Marching Rainbow Text
 ------------------------------------------------------------
 
-<example goes here>
+Using code almost identical to the :ref:`rainbow <rainbow_wsync>` effect, a common effect seen in title screens can be created:
 
+.. figure:: marching_rainbow.png
+   :align: center
+   :width: 90%
+
+.. raw:: html
+
+   <ul>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/src/marching_rainbow.s">marching_rainbow.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/xex/marching_rainbow.xex">marching_rainbow.xex</a></li>
+   </ul>
+
+Using a simple display list:
+
+.. code-block::
+
+   dlist   .byte $70,$70,$70,$70,$70,$70  ; 48 blank lines
+           .byte $46,<text,>text ; Mode 6 + LMS, setting screen memory to text
+           .byte 6            ; Mode 6
+           .byte $70,$70      ; 16 blank lines
+           .byte 7,7,7        ; 3 lines of Mode 7
+           .byte $70          ; 8 blank lines
+           .byte $f0          ; 8 blank lines + DLI on last scan line
+           .byte 7,7          ; 2 lines of Mode 7
+           .byte $41,<dlist,>dlist ; JVB, restart same display list on next frame
+
+the DLI simply loads the ``start_color`` variable as the initial color each
+time it is called, then increments the value stored in the hardware color
+register for playfield color zero (``COLPF0``) as it makes ``WSYNC`` calls to
+advance one scan line down the screen. Each scan line increases luminance (i.e.
+gets brighter), until the low 4 bits controlling the luminance overflows into
+the high 4 bits, changing the color to the next in the Atari's color palette at
+zero luminance.
+
+.. code-block::
+
+   dli     pha             ; save A & X registers to stack
+           txa
+           pha
+           ldx #32         ; make 32 color changes
+           lda start_color ; initial color
+           sta WSYNC       ; first WSYNC gets us to start of scan line we want
+   ?loop   sta COLPF0      ; change text color for UPPERCASE characters in gr2
+           clc
+           adc #$1         ; change color value, making brighter
+           dex             ; update iteration count
+           sta WSYNC       ; sta doesn't affect processor flags
+           bne ?loop       ; we are still checking result of dex
+           lda #text_color ; reset text color to normal color
+           sta COLPF0
+           dec start_color ; change starting color for next time
+           pla             ; restore X & A registers from stack
+           tax
+           pla
+           rti             ; always end DLI with RTI!
+
+At the end of the DLI, ``start_color`` is *decremented*, meaning that the next
+time the DLI is called it will start with one luminance value lower than it did
+last time. This gives the appearance of the previous rainbow of color being
+"pushed" down the screen and a new darker line being inserted at the top of the
+rainbow.
+
+Changing that ``dec start_color`` to ``inc start_color`` would have the
+opposite effect and the rainbow of color would appear to move upward.
+
+Alternatively, leaving the ``dec start_color`` but changing the ``clc``, ``adc
+#$1`` to:
+
+.. code-block::
+
+           sec
+           sbc #$1         ; change color value, making darker
+
+would have the same effect as ``inc start_color``.
 
 .. _topic_chbase:
 
