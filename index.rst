@@ -1552,7 +1552,7 @@ the mode 5 lines.
            txa
            pha
    
-           dec copy1       ; move copies to the left one color clock each scan line
+           dec copy1       ; move copies to the left one color clock each band
            dec copy2
            sta WSYNC       ; skip rest of last line of DLI line
            dec copy3       ; not enough time to do all 3 decrements before 1st WSYNC
