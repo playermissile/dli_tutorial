@@ -1977,7 +1977,7 @@ exercise for the reader.
            .byte $74,$70,$9a
            .byte $54,$70,$9b       ; last line in scrolling region, HSCROLL only
 
-           .byte $90               ; one blank line + DLI
+           .byte $80               ; one blank line + DLI
 
    dlist_lower_region
            .byte $74,$70,$90       ; 12 lines in region, VSCROLL + HSCROLL
