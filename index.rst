@@ -2117,33 +2117,39 @@ the ``X`` value used as the region index must be saved. Rather than use a
 temporary variable, self-modifying code is used. The current ``X`` value is
 saved *as the argument* for an immediate load.
 
-.. note: if you have not seen this technique before, it is used quite often as an optimization technique, rather than saving to a temporary zero page variable or the ``TXA, PHA, ... PLA, TAX`` sequence of opcodes. For improved code readability, I try to label any places where I use self modifying code with a ``smc_`` prefix.
+.. note::
 
-For comparison, using the stack with:
+   if you haven't seen this technique before, it is used quite often as a speed
+   optimization. The standard stack-based technique:
 
-.. code-block::
+   .. code-block::
 
-   txa ; 2 cycles
-   pha ; 4 cycles
-   pla ; 3 cycles
-   tax ; 2 cycles
+      txa ; 2 cycles
+      pha ; 4 cycles
+      pla ; 3 cycles
+      tax ; 2 cycles
 
-takes 13 cycles. Using a zero page variable:
+   takes 13 cycles. Using a zero page variable:
 
-.. code-block::
+   .. code-block::
 
-   stx zp ; 3 cycles
-   ldx zp ; 3 cycles
+      stx zp ; 3 cycles
+      ldx zp ; 3 cycles
 
-takes 6 cycles. Using self-modifying code:
+   takes 6 cycles. Using self-modifying code:
 
-.. code-block::
+   .. code-block::
 
-           stx smc+1 ; 4 cycles, opcode is at address smc, value is at smc+1
-   smc     ldx #$ff  ; 2 cycles
+              stx smc+1 ; 4 cycles, opcode is at address smc, value is at smc+1
+      smc     ldx #$ff  ; 2 cycles
 
-also takes 6 cycles, but has the advantage of not needing dedicated storage in
-the zero page.
+   also takes 6 cycles, but has the advantage of not needing dedicated storage
+   in the zero page. Note that if you are optimizing for size, the self-
+   modifying code version takes 5 bytes, while the stack and zero page versions
+   only take 4.
+
+   For improved code readability, I try to label any places where I use self
+   modifying code with a ``smc_`` prefix.
 
 Compared to the example from the scrolling tutorial, the remaining changes
 involve removal of all user input. The joystick control of the scrolling
