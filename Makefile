@@ -16,7 +16,8 @@ BINS = xex/sample_display_list.xex \
 	xex/multiplex_player_movement.xex \
 	xex/reusing_player_horz.xex \
 	xex/background_color_kernel.xex \
-	xex/parallax_scrolling.xex
+	xex/parallax_scrolling.xex \
+	xex/multiple_scrolling_regions.xex
 
 # undefine this to get extra debugging files during assembly
 # DEBUG_FILES = -L$<.var -g$<.lst
@@ -78,6 +79,9 @@ xex/background_color_kernel.xex: src/background_color_kernel.s src/util.s src/ut
 	atasm -mae -Isrc -o$@ $(DEBUG_FILES) $<
 
 xex/parallax_scrolling.xex: src/parallax_scrolling.s src/util.s src/util_dli.s src/util_vbi.s src/util_scroll.s src/util_font.s src/font_data_antic4.s
+	atasm -mae -Isrc -o$@ $(DEBUG_FILES) $<
+
+xex/multiple_scrolling_regions.xex: src/multiple_scrolling_regions.s src/util.s src/util_dli.s src/util_vbi.s src/util_scroll.s src/util_font.s src/font_data_antic4.s
 	atasm -mae -Isrc -o$@ $(DEBUG_FILES) $<
 
 png:

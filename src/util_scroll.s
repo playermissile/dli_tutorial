@@ -158,6 +158,135 @@ fillscreen_scroll
         bne ?loop
         rts
 
+
+;
+; fill 56 pages with test pattern, A-Z vertically and checkerboard
+; colors every 16 chars horizontally so scrolling movement will be
+; visible.
+;
+fillscreen_test_pattern
+        ldy #0
+?loop   tya
+        and #$10        ; every 16 bytes, change color
+        asl a
+        clc
+        adc #$41
+        sta $8000,y
+        adc #1
+        sta $8100,y
+        adc #1
+        sta $8200,y
+        adc #1
+        sta $8300,y
+        adc #1
+        sta $8400,y
+        adc #1
+        sta $8500,y
+        adc #1
+        sta $8600,y
+        adc #1
+        sta $8700,y
+        adc #1
+        sta $8800,y
+        adc #1
+        sta $8900,y
+        adc #1
+        sta $8a00,y
+        adc #1
+        sta $8b00,y
+        adc #1
+        sta $8c00,y
+        adc #1
+        sta $8d00,y
+        adc #1
+        sta $8e00,y
+        adc #1
+        sta $8f00,y
+        adc #1
+        sta $9000,y
+        adc #1
+        sta $9100,y
+        adc #1
+        sta $9200,y
+        adc #1
+        sta $9300,y
+        adc #1
+        sta $9400,y
+        adc #1
+        sta $9500,y
+        adc #1
+        sta $9600,y
+        adc #1
+        sta $9700,y
+        adc #1
+        sta $9800,y
+        adc #1
+        sta $9900,y
+        adc #7
+        sta $9a00,y
+        adc #1
+        sta $9b00,y
+        adc #1
+        sta $9c00,y
+        adc #1
+        sta $9d00,y
+        adc #1
+        sta $9e00,y
+        adc #1
+        sta $9f00,y
+        adc #1
+        sta $a000,y
+        adc #1
+        sta $a100,y
+        adc #1
+        sta $a200,y
+        adc #1
+        sta $a300,y
+        adc #1
+        sta $a400,y
+        adc #1
+        sta $a500,y
+        adc #1
+        sta $a600,y
+        adc #1
+        sta $a700,y
+        adc #1
+        sta $a800,y
+        adc #1
+        sta $a900,y
+        adc #1
+        sta $aa00,y
+        adc #1
+        sta $ab00,y
+        adc #1
+        sta $ac00,y
+        adc #1
+        sta $ad00,y
+        adc #1
+        sta $ae00,y
+        adc #1
+        sta $af00,y
+        adc #1
+        sta $b000,y
+        adc #1
+        sta $b100,y
+        adc #1
+        sta $b200,y
+        adc #1
+        sta $b300,y
+        adc #1
+        sta $b400,y
+        adc #1
+        sta $b500,y
+        adc #1
+        sta $b600,y
+        adc #1
+        sta $b700,y
+        iny
+        beq ?done
+        jmp ?loop
+?done   rts
+
 ; one page per line, used for horizontal scrolling. Start visible region
 ; in middle of each page so it can scroll either right or left immediately
 ; without having to check for a border
