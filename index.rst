@@ -1937,12 +1937,25 @@ depending on the band (B, C, and D, respectively), and when the low byte
 overflows, the high byte (and therefore ``HSCROL``) is updated.
 
 
-#6.x: Multiple Scrolling Regions
+#6.2: Multiple Scrolling Regions
 ------------------------------------------------------------------
 
 Splitting the screen vertically allows 2 (or more!) independent scrolling
 regions by changing the VSCROL and HSCROL values in the DLI so that the
 subsequent lines use different values.
+
+.. figure:: multiple_scrolling_regions.png
+   :align: center
+   :width: 90%
+
+.. raw:: html
+
+   <ul>
+   <li><b>Source Code:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/src/multiple_scrolling_regions.s">multiple_scrolling_regions.s</a></li>
+   <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/xex/multiple_scrolling_regions.xex">multiple_scrolling_regions.xex</a></li>
+   </ul>
+
+
 
 
 <example goes here>
