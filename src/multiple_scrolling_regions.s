@@ -14,8 +14,8 @@ tmp_counter = $81       ; counter for use in loops
 ; two bytes per variable, one per region
 vert_scroll = $90       ; variable used to store VSCROL value
 horz_scroll = $92       ; variable used to store HSCROL value
-scroll_dy = $a2        ; down = 1, up=$ff, no movement = 0
-scroll_dx = $a4        ; right = 1, left=$ff, no movement = 0
+scroll_dy = $a2         ; down = 1, up=$ff, no movement = 0
+scroll_dx = $a4         ; right = 1, left=$ff, no movement = 0
 
 init    lda #0          ; initialize horizontal scrolling value
         sta horz_scroll
@@ -125,13 +125,13 @@ fine_scroll_right
 coarse_scroll_right
         lda #12         ; 12 lines to modify
         sta tmp_counter
-        lda #1          ; dlist_region1+1 is low byte of address
+        lda #1          ; dlist_upper_region+1 is low byte of address
         cpx #0
         beq ?start
-        lda #(1+36+1)   ; dlist_region1+1+36+1 is dlist_region2+1
+        lda #(1+36+1)   ; dlist_upper_region+1+36+1 is dlist_region2+1
 ?start  stx ?smc_savex+1 ; save X register using self-modifying code
         tax
-?loop   inc dlist_region1,x
+?loop   inc dlist_upper_region,x
         inx             ; skip to next low byte which is 3 bytes away
         inx
         inx
@@ -157,13 +157,13 @@ fine_scroll_left
 coarse_scroll_left
         lda #12         ; 12 lines to modify
         sta tmp_counter
-        lda #1          ; dlist_region1+1 is low byte of address
+        lda #1          ; dlist_upper_region+1 is low byte of address
         cpx #0
         beq ?start
-        lda #(1+36+1)   ; dlist_region1+1+36+1 is dlist_region2+1
+        lda #(1+36+1)   ; dlist_upper_region+1+36+1 is dlist_region2+1
 ?start  stx ?smc_savex+1 ; save X register using self-modifying code
         tax
-?loop   dec dlist_region1,x
+?loop   dec dlist_upper_region,x
         inx             ; skip to next low byte which is 3 bytes away
         inx
         inx
@@ -191,13 +191,13 @@ fine_scroll_up
 coarse_scroll_up
         lda #12         ; 12 lines to modify
         sta tmp_counter
-        lda #2          ; dlist_region1+2 is high byte of address
+        lda #2          ; dlist_upper_region+2 is high byte of address
         cpx #0
         beq ?start
-        lda #(2+36+1)   ; dlist_region1+2+36+1 is dlist_region2+2
+        lda #(2+36+1)   ; dlist_upper_region+2+36+1 is dlist_region2+2
 ?start  stx ?smc_savex+1 ; save X register using self-modifying code
         tax
-?loop   dec dlist_region1,x
+?loop   dec dlist_upper_region,x
         inx             ; skip to next low byte which is 3 bytes away
         inx
         inx
@@ -223,13 +223,13 @@ fine_scroll_down
 coarse_scroll_down
         lda #12         ; 12 lines to modify
         sta tmp_counter
-        lda #2          ; dlist_region1+2 is high byte of address
+        lda #2          ; dlist_upper_region+2 is high byte of address
         cpx #0
         beq ?start
-        lda #(2+36+1)   ; dlist_region1+2+36+1 is dlist_region2+2
+        lda #(2+36+1)   ; dlist_upper_region+2+36+1 is dlist_region2+2
 ?start  stx ?smc_savex+1 ; save X register using self-modifying code
         tax
-?loop   inc dlist_region1,x
+?loop   inc dlist_upper_region,x
         inx             ; skip to next low byte which is 3 bytes away
         inx
         inx
@@ -253,7 +253,7 @@ dli     pha             ; only using A register, so save old value to the stack
 ; without having to check for a border
 dlist   .byte $70,$70,$70
 
-dlist_region1
+dlist_upper_region
         .byte $74,$70,$90       ; 12 lines in region, VSCROLL + HSCROLL
         .byte $74,$70,$91
         .byte $74,$70,$92
@@ -269,7 +269,7 @@ dlist_region1
 
         .byte $90               ; one blank line + DLI
 
-dlist_region2
+dlist_lower_region
         .byte $74,$70,$90       ; 12 lines in region, VSCROLL + HSCROLL
         .byte $74,$70,$91
         .byte $74,$70,$92

@@ -1963,7 +1963,7 @@ exercise for the reader.
 
    dlist   .byte $70,$70,$70
 
-   dlist_region1
+   dlist_upper_region
            .byte $74,$70,$90       ; 12 lines in region, VSCROLL + HSCROLL
            .byte $74,$70,$91
            .byte $74,$70,$92
@@ -1979,7 +1979,7 @@ exercise for the reader.
 
            .byte $90               ; one blank line + DLI
 
-   dlist_region2
+   dlist_lower_region
            .byte $74,$70,$90       ; 12 lines in region, VSCROLL + HSCROLL
            .byte $74,$70,$91
            .byte $74,$70,$92
@@ -2002,8 +2002,8 @@ real-world examples would probably be longer and could use the leeway provided
 by the extra cycles.
 
 The scrolling code is taken largely from the :ref:`scrolling tutorial 2D
-scrolling code walkthrough <code_walkhrough>`, so discussion of the workings of
-the scrolling code won't be repeated here. The major difference is that the
+scrolling code walkthrough <code_walkthrough>`, so discussion of the workings
+of the scrolling code won't be repeated here. The major difference is that the
 code needs to keep track of two separate scrolling regions. Think of the
 following as two-element arrays:
 
@@ -2012,8 +2012,8 @@ following as two-element arrays:
    ; two bytes per variable, one per region
    vert_scroll = $90       ; variable used to store VSCROL value
    horz_scroll = $92       ; variable used to store HSCROL value
-   scroll_dy = $a2        ; down = 1, up=$ff, no movement = 0
-   scroll_dx = $a4        ; right = 1, left=$ff, no movement = 0
+   scroll_dy = $a2         ; down = 1, up=$ff, no movement = 0
+   scroll_dx = $a4         ; right = 1, left=$ff, no movement = 0
 
 Updating the scrolling parameters for both regions is performed in the vertical
 blank, where the ``X`` register is used as the array index into the variables.
@@ -2026,7 +2026,7 @@ blank, where the ``X`` register is used as the array index into the variables.
 
            ldx #0          ; process top region
            jsr process_movement ; update scrolling position
-           inx             ; process bottom region
+           inx             ; process lower region
            jsr process_movement ; update scrolling position
 
            lda #delay      ; reset counter
@@ -2043,11 +2043,14 @@ blank, where the ``X`` register is used as the array index into the variables.
 
 The idea behind multiple scrolling regions is independent control of the
 hardware scrolling registers. Coarse scrolling for each region is dependent
-only on the LMS addresses of the display list, it is fine scrolling that needs
-special handling.
+only on the LMS addresses of the display list; it is fine scrolling that needs
+special handling because ordinarily ``VSCROL`` and ``HSCROL`` affect the entire
+screen.
 
-The hardware scrolling registers are set in the vertical blank to affect the
-upper region, and are set in the DLI to affect the lower region.
+The hardware scrolling registers are set in the vertical blank and would
+normally affect the entire screen. But because of the DLI, they only affect the
+upper region. The DLI changes the hardware registers, meaning all the scrolled
+lines in the lower region use those new values.
 
 .. code-block::
 
@@ -2068,10 +2071,13 @@ always uses array index 0 and the DLI always uses array index 1, there is no
 need to use the ``X`` register as an index.
 
 We won't examine all 4 scrolling directions here, but we will look at one as an
-example of how they were all modified. The `` register is loaded in the
-vertical blank, then the ``process_movement`` subroutine calls the appropriate
-fine scrolling subroutine for the directions needed. The routine for fine
-scrolling to the right shows the ``X`` indexing of the ``horz_scroll`` array:
+example of how they were all modified. The ``X`` register is loaded in the
+vertical blank, then the ``process_movement`` subroutine is called for both
+regions. Inside that subroutine, it calls the appropriate fine scrolling
+subroutines for the directions needed.
+
+Scrolling to the right will be used as the example. The fine scrolling
+subroutine shows the ``X`` indexing of the ``horz_scroll`` array:
 
 .. code-block::
 
@@ -2088,23 +2094,23 @@ If coarse scrolling is needed, the ``X`` register is examined to determine which
 
 .. code-block::
 
-coarse_scroll_right
-        lda #12         ; 12 lines to modify
-        sta tmp_counter
-        lda #1          ; dlist_region1+1 is low byte of address
-        cpx #0
-        beq ?start
-        lda #(1+36+1)   ; dlist_region1+1+36+1 is dlist_region2+1
-?start  stx ?smc_savex+1 ; save X register using self-modifying code
-        tax
-?loop   inc dlist_region1,x
-        inx             ; skip to next low byte which is 3 bytes away
-        inx
-        inx
-        dec tmp_counter
-        bne ?loop
-?smc_savex ldx #$ff
-        rts
+   coarse_scroll_right
+           lda #12         ; 12 lines to modify
+           sta tmp_counter
+           lda #1          ; dlist_upper_region+1 is low byte of address
+           cpx #0
+           beq ?start
+           lda #(1+36+1)   ; dlist_upper_region+1+36+1 is dlist_region2+1
+   ?start  stx ?smc_savex+1 ; save X register using self-modifying code
+           tax
+   ?loop   inc dlist_upper_region,x
+           inx             ; skip to next low byte which is 3 bytes away
+           inx
+           inx
+           dec tmp_counter
+           bne ?loop
+   ?smc_savex ldx #$ff
+           rts
 
 Because the ``inc`` instruction can only be indexed using the ``X`` register,
 the ``X`` value used as the region index must be saved. Rather than use a
@@ -2133,15 +2139,16 @@ takes 6 cycles. Using self-modifying code:
 
 .. code-block::
 
-           stx smc+1 ; 4 cycles
+           stx smc+1 ; 4 cycles, opcode is at address smc, value is at smc+1
    smc     ldx #$ff  ; 2 cycles
 
 also takes 6 cycles, but has the advantage of not needing dedicated storage in
 the zero page.
 
-The only other changes here to the example from the scrolling tutorial is that
-this has been stripped down to remove joystick control: the scrolling direction
-is set in the initialization routine and not changed subsequently.
+Compared to the example from the scrolling tutorial, the remaining changes
+involve removal of all user input. The joystick control of the scrolling
+direction is replaced by hardcoded values, and the **Option** and **Select**
+keys are not handled.
 
 To modify the code to handle more than 2 scrolling regions, the array size in
 the zero page would have to be increased, the DLI display list bit would have
