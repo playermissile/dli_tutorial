@@ -11,7 +11,7 @@ horz_scroll_max = 4     ; ANTIC mode 4 has 4 color clocks
 delay_count = $80       ; counter for scrolling updates
 tmp_counter = $81       ; counter for use in loops
 
-; two bytes per variable, one per band
+; two bytes per variable, one per region
 vert_scroll = $90       ; variable used to store VSCROL value
 horz_scroll = $92       ; variable used to store HSCROL value
 scroll_dy = $a2        ; down = 1, up=$ff, no movement = 0
@@ -72,17 +72,17 @@ forever jmp forever
 vbi     dec delay_count ; wait for number of VBLANKs before updating
         bne ?exit       ;   fine/coarse scrolling
 
-        ldx #0          ; process top band
+        ldx #0          ; process upper region
         jsr process_movement ; update scrolling position
-        inx             ; process bottom band
+        inx             ; process lower region
         jsr process_movement ; update scrolling position
 
         lda #delay      ; reset counter
         sta delay_count
 
         ; every VBI have to set the scrolling registers for the upper
-        ; band, otherwise the registers will still be set to the values
-        ; for the lower band that were handled in the DLI
+        ; region, otherwise the registers will still be set to the values
+        ; for the lower region that were handled in the DLI
 ?exit   lda horz_scroll
         sta HSCROL
         lda vert_scroll
@@ -125,13 +125,13 @@ fine_scroll_right
 coarse_scroll_right
         lda #12         ; 12 lines to modify
         sta tmp_counter
-        lda #1          ; dlist_band1+1 is low byte of address
+        lda #1          ; dlist_region1+1 is low byte of address
         cpx #0
         beq ?start
-        lda #(1+36+1)   ; dlist_band1+1+36+1 is dlist_band2+1
+        lda #(1+36+1)   ; dlist_region1+1+36+1 is dlist_region2+1
 ?start  stx ?smc_savex+1 ; save X register using self-modifying code
         tax
-?loop   inc dlist_band1,x
+?loop   inc dlist_region1,x
         inx             ; skip to next low byte which is 3 bytes away
         inx
         inx
@@ -157,13 +157,13 @@ fine_scroll_left
 coarse_scroll_left
         lda #12         ; 12 lines to modify
         sta tmp_counter
-        lda #1          ; dlist_band1+1 is low byte of address
+        lda #1          ; dlist_region1+1 is low byte of address
         cpx #0
         beq ?start
-        lda #(1+36+1)   ; dlist_band1+1+36+1 is dlist_band2+1
+        lda #(1+36+1)   ; dlist_region1+1+36+1 is dlist_region2+1
 ?start  stx ?smc_savex+1 ; save X register using self-modifying code
         tax
-?loop   dec dlist_band1,x
+?loop   dec dlist_region1,x
         inx             ; skip to next low byte which is 3 bytes away
         inx
         inx
@@ -191,13 +191,13 @@ fine_scroll_up
 coarse_scroll_up
         lda #12         ; 12 lines to modify
         sta tmp_counter
-        lda #2          ; dlist_band1+2 is high byte of address
+        lda #2          ; dlist_region1+2 is high byte of address
         cpx #0
         beq ?start
-        lda #(2+36+1)   ; dlist_band1+2+36+1 is dlist_band2+2
+        lda #(2+36+1)   ; dlist_region1+2+36+1 is dlist_region2+2
 ?start  stx ?smc_savex+1 ; save X register using self-modifying code
         tax
-?loop   dec dlist_band1,x
+?loop   dec dlist_region1,x
         inx             ; skip to next low byte which is 3 bytes away
         inx
         inx
@@ -223,13 +223,13 @@ fine_scroll_down
 coarse_scroll_down
         lda #12         ; 12 lines to modify
         sta tmp_counter
-        lda #2          ; dlist_band1+2 is high byte of address
+        lda #2          ; dlist_region1+2 is high byte of address
         cpx #0
         beq ?start
-        lda #(2+36+1)   ; dlist_band1+2+36+1 is dlist_band2+2
+        lda #(2+36+1)   ; dlist_region1+2+36+1 is dlist_region2+2
 ?start  stx ?smc_savex+1 ; save X register using self-modifying code
         tax
-?loop   inc dlist_band1,x
+?loop   inc dlist_region1,x
         inx             ; skip to next low byte which is 3 bytes away
         inx
         inx
@@ -240,9 +240,9 @@ coarse_scroll_down
 
 
 dli     pha             ; only using A register, so save old value to the stack
-        lda horz_scroll+1 ; lower band HSCROL value
+        lda horz_scroll+1 ; lower region HSCROL value
         sta HSCROL      ; store in hardware register
-        lda vert_scroll+1 ; lower band VSCROL value
+        lda vert_scroll+1 ; lower region VSCROL value
         sta VSCROL      ; initialize hardware register
         pla             ; restore the A register
         rti             ; always end DLI with RTI!
@@ -253,8 +253,8 @@ dli     pha             ; only using A register, so save old value to the stack
 ; without having to check for a border
 dlist   .byte $70,$70,$70
 
-dlist_band1
-        .byte $74,$70,$90       ; 12 lines in band, VSCROLL + HSCROLL
+dlist_region1
+        .byte $74,$70,$90       ; 12 lines in region, VSCROLL + HSCROLL
         .byte $74,$70,$91
         .byte $74,$70,$92
         .byte $74,$70,$93
@@ -269,8 +269,8 @@ dlist_band1
 
         .byte $90               ; one blank line + DLI
 
-dlist_band2
-        .byte $74,$70,$90       ; 12 lines in band, VSCROLL + HSCROLL
+dlist_region2
+        .byte $74,$70,$90       ; 12 lines in region, VSCROLL + HSCROLL
         .byte $74,$70,$91
         .byte $74,$70,$92
         .byte $74,$70,$93

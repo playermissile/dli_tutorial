@@ -1940,7 +1940,7 @@ overflows, the high byte (and therefore ``HSCROL``) is updated.
 #6.2: Multiple Scrolling Regions
 ------------------------------------------------------------------
 
-Splitting the screen vertically allows 2 (or more!) independent scrolling
+Splitting the screen vertically allows multiple independent scrolling
 regions by changing the VSCROL and HSCROL values in the DLI so that the
 subsequent lines use different values.
 
@@ -1955,8 +1955,197 @@ subsequent lines use different values.
    <li><b>Executable:</b> <a href="https://raw.githubusercontent.com/playermissile/dli_tutorial/master/xex/multiple_scrolling_regions.xex">multiple_scrolling_regions.xex</a></li>
    </ul>
 
+This example uses 2 regions with the DLI on a blank line separating them. More
+than 2 regions are possible using similar techniques, and is left as an
+exercise for the reader.
 
+.. code-block::
 
+   dlist   .byte $70,$70,$70
 
-<example goes here>
+   dlist_region1
+           .byte $74,$70,$90       ; 12 lines in region, VSCROLL + HSCROLL
+           .byte $74,$70,$91
+           .byte $74,$70,$92
+           .byte $74,$70,$93
+           .byte $74,$70,$94
+           .byte $74,$70,$95
+           .byte $74,$70,$96
+           .byte $74,$70,$97
+           .byte $74,$70,$98
+           .byte $74,$70,$99
+           .byte $74,$70,$9a
+           .byte $54,$70,$9b       ; last line in scrolling region, HSCROLL only
 
+           .byte $90               ; one blank line + DLI
+
+   dlist_region2
+           .byte $74,$70,$90       ; 12 lines in region, VSCROLL + HSCROLL
+           .byte $74,$70,$91
+           .byte $74,$70,$92
+           .byte $74,$70,$93
+           .byte $74,$70,$94
+           .byte $74,$70,$95
+           .byte $74,$70,$96
+           .byte $74,$70,$97
+           .byte $74,$70,$98
+           .byte $74,$70,$99
+           .byte $74,$70,$9a
+           .byte $54,$70,$9b       ; last line in scrolling region, HSCROLL only
+
+           .byte $41,<dlist,>dlist ; JVB ends display list
+
+Using a blank line as the DLI reduces the possibility of timing issues due to
+the large number of cycles stolen by ANTIC mode 4. There are very few cycles
+stolen on a blank line, and even through the DLI used below is not very long,
+real-world examples would probably be longer and could use the leeway provided
+by the extra cycles.
+
+The scrolling code is taken largely from the :ref:`scrolling tutorial 2D
+scrolling code walkthrough <code_walkhrough>`, so discussion of the workings of
+the scrolling code won't be repeated here. The major difference is that the
+code needs to keep track of two separate scrolling regions. Think of the
+following as two-element arrays:
+
+.. code-block::
+
+   ; two bytes per variable, one per region
+   vert_scroll = $90       ; variable used to store VSCROL value
+   horz_scroll = $92       ; variable used to store HSCROL value
+   scroll_dy = $a2        ; down = 1, up=$ff, no movement = 0
+   scroll_dx = $a4        ; right = 1, left=$ff, no movement = 0
+
+Updating the scrolling parameters for both regions is performed in the vertical
+blank, where the ``X`` register is used as the array index into the variables.
+``X = 0`` refers to the upper region, and ``X = 1`` the lower region.
+
+.. code-block::
+
+   vbi     dec delay_count ; wait for number of VBLANKs before updating
+           bne ?exit       ;   fine/coarse scrolling
+
+           ldx #0          ; process top region
+           jsr process_movement ; update scrolling position
+           inx             ; process bottom region
+           jsr process_movement ; update scrolling position
+
+           lda #delay      ; reset counter
+           sta delay_count
+
+           ; every VBI have to set the scrolling registers for the upper
+           ; region, otherwise the registers will still be set to the values
+           ; for the lower region that were handled in the DLI
+   ?exit   lda horz_scroll
+           sta HSCROL
+           lda vert_scroll
+           sta VSCROL
+           jmp XITVBV      ; exit VBI through operating system routine
+
+The idea behind multiple scrolling regions is independent control of the
+hardware scrolling registers. Coarse scrolling for each region is dependent
+only on the LMS addresses of the display list, it is fine scrolling that needs
+special handling.
+
+The hardware scrolling registers are set in the vertical blank to affect the
+upper region, and are set in the DLI to affect the lower region.
+
+.. code-block::
+
+   dli     pha             ; only using A register, so save old value to the stack
+           lda horz_scroll+1 ; lower region HSCROL value
+           sta HSCROL      ; store in hardware register
+           lda vert_scroll+1 ; lower region VSCROL value
+           sta VSCROL      ; initialize hardware register
+           pla             ; restore the A register
+           rti             ; always end DLI with RTI!
+
+The two-element arrays at ``horz_scroll`` and ``vert_scroll`` hold the values
+to be stored in the hardware registers for the upper region at index 0 and the
+lower region at index 1. In the scrolling code processing starting with the
+``process_movement`` subroutine, the arrays are indexed using the ``X``
+register, while in the VBI and DLI the array indexes are fixed. Because the VBI
+always uses array index 0 and the DLI always uses array index 1, there is no
+need to use the ``X`` register as an index.
+
+We won't examine all 4 scrolling directions here, but we will look at one as an
+example of how they were all modified. The `` register is loaded in the
+vertical blank, then the ``process_movement`` subroutine calls the appropriate
+fine scrolling subroutine for the directions needed. The routine for fine
+scrolling to the right shows the ``X`` indexing of the ``horz_scroll`` array:
+
+.. code-block::
+
+   fine_scroll_right
+           dec horz_scroll,x
+           lda horz_scroll,x
+           bpl ?done       ; if non-negative, still in the middle of the character
+           jsr coarse_scroll_right ; wrapped to $ff, do a coarse scroll...
+           lda #horz_scroll_max-1  ;  ...followed by reseting the HSCROL register
+           sta horz_scroll,x
+   ?done   rts
+
+If coarse scrolling is needed, the ``X`` register is examined to determine which set of display list instructions need their LMS address updated:
+
+.. code-block::
+
+coarse_scroll_right
+        lda #12         ; 12 lines to modify
+        sta tmp_counter
+        lda #1          ; dlist_region1+1 is low byte of address
+        cpx #0
+        beq ?start
+        lda #(1+36+1)   ; dlist_region1+1+36+1 is dlist_region2+1
+?start  stx ?smc_savex+1 ; save X register using self-modifying code
+        tax
+?loop   inc dlist_region1,x
+        inx             ; skip to next low byte which is 3 bytes away
+        inx
+        inx
+        dec tmp_counter
+        bne ?loop
+?smc_savex ldx #$ff
+        rts
+
+Because the ``inc`` instruction can only be indexed using the ``X`` register,
+the ``X`` value used as the region index must be saved. Rather than use a
+temporary variable, self-modifying code is used. The current ``X`` value is
+saved *as the argument* for an immediate load.
+
+.. note: if you have not seen this technique before, it is used quite often as an optimization technique, rather than saving to a temporary zero page variable or the ``TXA, PHA, ... PLA, TAX`` sequence of opcodes. For improved code readability, I try to label any places where I use self modifying code with a ``smc_`` prefix.
+
+For comparison, using the stack with:
+
+.. code-block::
+
+   txa ; 2 cycles
+   pha ; 4 cycles
+   pla ; 3 cycles
+   tax ; 2 cycles
+
+takes 13 cycles. Using a zero page variable:
+
+.. code-block::
+
+   stx zp ; 3 cycles
+   ldx zp ; 3 cycles
+
+takes 6 cycles. Using self-modifying code:
+
+.. code-block::
+
+           stx smc+1 ; 4 cycles
+   smc     ldx #$ff  ; 2 cycles
+
+also takes 6 cycles, but has the advantage of not needing dedicated storage in
+the zero page.
+
+The only other changes here to the example from the scrolling tutorial is that
+this has been stripped down to remove joystick control: the scrolling direction
+is set in the initialization routine and not changed subsequently.
+
+To modify the code to handle more than 2 scrolling regions, the array size in
+the zero page would have to be increased, the DLI display list bit would have
+to be set in the dividing line between all regions in the display list, the DLI
+itself would have to be made aware of which region it was operating in, and the
+coarse scrolling subroutines would have to handle the additional display list
+regions for updating LMS addresses.
