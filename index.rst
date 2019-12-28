@@ -2041,11 +2041,12 @@ blank, where the ``X`` register is used as the array index into the variables.
            sta VSCROL
            jmp XITVBV      ; exit VBI through operating system routine
 
-The idea behind multiple scrolling regions is independent control of the
+The idea behind multiple scrolling regions is: independent control of the
 hardware scrolling registers. Coarse scrolling for each region is dependent
-only on the LMS addresses of the display list; it is fine scrolling that needs
-special handling because ordinarily ``VSCROL`` and ``HSCROL`` affect the entire
-screen.
+only on the LMS addresses of the display list, so no DLI would be needed.
+However, fine scrolling does need the mid-screen changes provided by a DLI,
+otherwise the ``VSCROL`` and ``HSCROL`` values would affect all scrolling
+regions.
 
 The hardware scrolling registers are set in the vertical blank and would
 normally affect the entire screen. But because of the DLI, they only affect the
