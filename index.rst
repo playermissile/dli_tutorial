@@ -7,7 +7,7 @@
 Atari 8-bit Display List Interrupts: A Complete(ish) Tutorial
 ======================================================================
 
-**Revision 7, updated 26 Dec 2019**
+**Revision 8, updated 28 Dec 2019**
 
 This is a tutorial on Display List Interrupts (DLIs) for the Atari 8-bit series
 of computers. In a nutshell, DLIs provide a way to notify your program when a
