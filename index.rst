@@ -2145,8 +2145,8 @@ saved *as the argument* for an immediate load.
       smc     ldx #$ff  ; 2 cycles
 
    also takes 6 cycles, but has the advantage of not needing dedicated storage
-   in the zero page. Note that if you are optimizing for size, the self-
-   modifying code version takes 5 bytes, while the stack and zero page versions
+   in the zero page. Note that if you are optimizing for size, the self-modifying
+   code version takes 5 bytes, while the stack and zero page versions
    only take 4.
 
    For improved code readability, I try to label any places where I use self
