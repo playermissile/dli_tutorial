@@ -1808,7 +1808,7 @@ kernel-style DLI.
 Topic #6: Scrolling
 -----------------------------------------
 
-.. note:: Scrolling is a large topic; so large, in fact, that I wrote an :ref:`additional tutorial <scrolling_tutorial>`about it!
+.. note:: Scrolling is a large topic; so large, in fact, that I wrote an :ref:`additional tutorial <scrolling_tutorial>` about it!
 
 Display lists provide the ability to easily perform course scrolling without
 moving any display memory around. Instead, the visible display can be adjusted
