@@ -761,33 +761,33 @@ atari800/Omnivore instruction history below:
 
 .. code-block:: none
 
-   60   5 | 58 09 25 ---B-I-C f6 3336  8d 0a d4  sta WSYNC     $d40a=58 (was d0)
-   60 106 | 58 09 25 ---B-I-C f6 3339  8d 0a d4  sta WSYNC     $d40a=58 (was d0)
-   61 106 | 58 09 25 ---B-I-C f6 333c  d0 f1     bne $332f     (taken)
-   61 109 | 58 09 25 ---B-I-C f6 332f  8d 1a d0  sta COLBK     $d01a=58 (was 0f)
-   61 113 | 58 09 25 ---B-I-C f6 3332  38        sec
-   62   1 | 58 09 25 ---B-I-C f6 3333  e9 01     sbc #$01      A=57
-   62   3 | 57 09 25 ---B-I-C f6 3335  ca        dex           X=08
-   62   5 | 57 08 25 ---B-I-C f6 3336  8d 0a d4  sta WSYNC     $d40a=57 (was d0)
-   62 106 | 57 08 25 ---B-I-C f6 3339  8d 0a d4  sta WSYNC     $d40a=57 (was d0)
+   60   5 | 58 09 25 ---I-C f6 3336  8d 0a d4  sta WSYNC     $d40a=58 (was d0)
+   60 106 | 58 09 25 ---I-C f6 3339  8d 0a d4  sta WSYNC     $d40a=58 (was d0)
+   61 106 | 58 09 25 ---I-C f6 333c  d0 f1     bne $332f     (taken)
+   61 109 | 58 09 25 ---I-C f6 332f  8d 1a d0  sta COLBK     $d01a=58 (was 0f)
+   61 113 | 58 09 25 ---I-C f6 3332  38        sec
+   62   1 | 58 09 25 ---I-C f6 3333  e9 01     sbc #$01      A=57
+   62   3 | 57 09 25 ---I-C f6 3335  ca        dex           X=08
+   62   5 | 57 08 25 ---I-C f6 3336  8d 0a d4  sta WSYNC     $d40a=57 (was d0)
+   62 106 | 57 08 25 ---I-C f6 3339  8d 0a d4  sta WSYNC     $d40a=57 (was d0)
    63   0 | --DLI
-   63 106 | 57 08 25 ---B-I-C f3 c018  2c 0f d4  bit NMIRES    $d40f=1c N=1
-   63 110 | 57 08 25 N--B-I-C f3 c01b  10 03     bpl $c020     (not taken)
-   63 112 | 57 08 25 N--B-I-C f3 c01d  6c 00 02  jmp (VDSLST)  ($0200)=$3325
-   64   4 | 57 08 25 N--B-I-C f3 3325  48        pha           $01f3=57
-   64   7 | 57 08 25 N--B-I-C f2 3326  8a        txa           A=08 N=0
-   64   9 | 08 08 25 ---B-I-C f2 3327  48        pha           $01f2=08
-   64  12 | 08 08 25 ---B-I-C f1 3328  a2 10     ldx #$10      X=10
-   64  14 | 08 10 25 ---B-I-C f1 332a  a9 5f     lda #$5f      A=5f
-   64  16 | 5f 10 25 ---B-I-C f1 332c  8d 0a d4  sta WSYNC     $d40a=5f (was d0)
-   64 107 | 5f 10 25 ---B-I-C f1 332f  8d 1a d0  sta COLBK     $d01a=5f (was 0f)
-   64 111 | 5f 10 25 ---B-I-C f1 3332  38        sec
-   64 113 | 5f 10 25 ---B-I-C f1 3333  e9 01     sbc #$01      A=5e
-   65   1 | 5e 10 25 ---B-I-C f1 3335  ca        dex           X=0f
-   65   3 | 5e 0f 25 ---B-I-C f1 3336  8d 0a d4  sta WSYNC     $d40a=5e (was d0)
-   65 106 | 5e 0f 25 ---B-I-C f1 3339  8d 0a d4  sta WSYNC     $d40a=5e (was d0)
-   66 106 | 5e 0f 25 ---B-I-C f1 333c  d0 f1     bne $332f     (taken)
-   66 109 | 5e 0f 25 ---B-I-C f1 332f  8d 1a d0  sta COLBK     $d01a=5e (was 0f)
+   63 106 | 57 08 25 ---I-C f3 c018  2c 0f d4  bit NMIRES    $d40f=1c N=1
+   63 110 | 57 08 25 N--I-C f3 c01b  10 03     bpl $c020     (not taken)
+   63 112 | 57 08 25 N--I-C f3 c01d  6c 00 02  jmp (VDSLST)  ($0200)=$3325
+   64   4 | 57 08 25 N--I-C f3 3325  48        pha           $01f3=57
+   64   7 | 57 08 25 N--I-C f2 3326  8a        txa           A=08 N=0
+   64   9 | 08 08 25 ---I-C f2 3327  48        pha           $01f2=08
+   64  12 | 08 08 25 ---I-C f1 3328  a2 10     ldx #$10      X=10
+   64  14 | 08 10 25 ---I-C f1 332a  a9 5f     lda #$5f      A=5f
+   64  16 | 5f 10 25 ---I-C f1 332c  8d 0a d4  sta WSYNC     $d40a=5f (was d0)
+   64 107 | 5f 10 25 ---I-C f1 332f  8d 1a d0  sta COLBK     $d01a=5f (was 0f)
+   64 111 | 5f 10 25 ---I-C f1 3332  38        sec
+   64 113 | 5f 10 25 ---I-C f1 3333  e9 01     sbc #$01      A=5e
+   65   1 | 5e 10 25 ---I-C f1 3335  ca        dex           X=0f
+   65   3 | 5e 0f 25 ---I-C f1 3336  8d 0a d4  sta WSYNC     $d40a=5e (was d0)
+   65 106 | 5e 0f 25 ---I-C f1 3339  8d 0a d4  sta WSYNC     $d40a=5e (was d0)
+   66 106 | 5e 0f 25 ---I-C f1 333c  d0 f1     bne $332f     (taken)
+   66 109 | 5e 0f 25 ---I-C f1 332f  8d 1a d0  sta COLBK     $d01a=5e (was 0f)
 
 the DLI starts late on scan line 63 as (naively) expected and gets to the
 ``sta WSYNC`` early in scan line 64 while there is still time to hit the ``sta
