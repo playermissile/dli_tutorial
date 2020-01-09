@@ -1247,6 +1247,37 @@ the hardware register ``CHBASE``:
            rti             ; always end DLI with RTI!
 
 
+#3.x: Multiple Interleaved Character Sets for Soft Sprites
+------------------------------------------------------------
+
+The author of the cc65 DLI tutorial, Yaron Nir, started a recent `topic on
+AtariAge <https://atariage.com/forums/topic/299571-introducing-interleaved-charactersets-any-game-screen-is-possible-almost/>`_ that described a technique
+to use a DLI to change the character set on each line to facilitate the use of
+soft sprites.
+
+Soft sprites require shifting images within characters to achieve smooth
+motion, so the height of the soft sprites determines how many lines of
+characters needed, and the width in pixels as compared to the width of each
+character determines the number of characters must be placed horizontally.
+ANTIC mode 4 is 8 scan lines tall and has 4 pixels across. Vertically, you
+could have sprites of height 9 scan lines using 2 character sets, 17 scan lines
+with 3 character sets, 25 scan lines with 4 character sets, etc. Sprites would
+need 2 characters side-by-side for up to 5 pixels, 3 characters for 9 pixels, 4
+characters for 13 pixels. etc.
+
+<image here>
+
+With only 128 glyphs per character set, bit patterns are at a premium. If, say,
+64 characters are used for background, only 64 characters remain for sprites.
+Using a 4x3 grid for sprites takes 12 out of the 64 available sprite glyphs, so
+5 (independent) soft sprites would be available since that would use 60
+characters. Limiting directions can reduce that number; if your sprites move
+only horizontally, for instance, sprites of 13 pixels by 16 scan lines would
+only take a 3x2 grid, or only 6 characters.
+
+The advantage of using a DLI with multiple character sets is that more
+characters are available for sprites. 
+
 
 Topic #4: Player/Missile Graphics
 ---------------------------------------------
